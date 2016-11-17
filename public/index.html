@@ -46,19 +46,21 @@
 				function availableMoves(virtualBoard, piece) {
 					var moves = [];
 
-					if (piece.boardX > 0){
+					if (piece.boardX > 0 && piece.boardY < 7){
 						var left = virtualBoard[piece.boardY+1][piece.boardX - 1];
 						if (left[1] == null) {
 							moves.push(left[0]);
 						}
 					}
 
-					if (piece.boardX < 7){
+					if (piece.boardX < 7 && piece.boardY < 7){
 						var right = virtualBoard[piece.boardY+1][piece.boardX + 1];
 						if (right[1] == null) {
 							moves.push(right[0]);
 						}
 					}
+
+				
 
 					return moves;
 				}
