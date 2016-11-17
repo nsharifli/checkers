@@ -32,6 +32,8 @@
 							square.graphics.beginFill("black").drawRect(0, 0, 50, 50);
 							square.x = 200 + col * 50;
 							square.y = 100 + row * 50;
+							square.boardX = col;
+							square.boardY = row;
 							squares.push(square);
 							virtualBoard[row][col][0] = square;
 							stage.addChild(square);
@@ -102,7 +104,7 @@
 								white_piece.on("pressup", function(evt) {
 									var piece = evt.currentTarget;
 									var moves = availableMoves(virtualBoard, piece);
-									var initial_square = virtualBoard[piece.boardY][piece.boardX][0];
+									var initial_square = virtualBoard[piece.boardY][piece.boardX];
 
 									moves.forEach(function(square){
 										square.alpha = 1;
@@ -111,43 +113,36 @@
 									var closestSquare = moves.find(function(square){
 										return ((square.x < evt.stageX) && (evt.stageX < square.x + 50)) && 
 										((square.y < evt.stageY) && (evt.stageY < square.y + 50));
-
 										})
 
 									if (closestSquare == null){
-										piece.x = initial_square.x + 25;
-										piece.y = initial_square.y + 25;
-										
-											
+										piece.x = initial_square[0].x + 25;
+										piece.y = initial_square[0].y + 25;	
 									}
 
 									else {
 										piece.x = closestSquare.x + 25;
 										piece.y = closestSquare.y + 25;
+										virtualBoard[piece.boardY][piece.boardX][1] = null;
+										piece.boardX = closestSquare.boardX;
+										piece.boardY = closestSquare.boardY;
+										virtualBoard[closestSquare.boardY][closestSquare.boardX][1] = piece;
+
+
 									}
+
+
 								})
+
+
+
+
 							}
 						}
 					}
 				}
 
 										
-										//checks if piece is in square
-										//returns true or false
-									
-
-
-
-
-
-					
-
-
-
-				
-
-
-
 
 								// else if ( [5, 6, 7].indexOf(row) != -1 && (row + col) % 2 == 1) {
 								// 	a = a + 1
@@ -179,65 +174,6 @@
 
 
 			}
-
-
-
-				
-				
-				// square_1 = new createjs.Shape();
-				// square_1.graphics.beginFill("grey").drawRect(0, 0, 90, 90);
-				// square_1.x = 100;
-				// square_1.y = 150;
-				// square_1.w = 90;
-				// square_1.h = 90;
-				// square_1.midx = square_1.x + square_1.w/2;
-				// square_1.midy = square_1.y + square_1.h/2;
-				// square_2 = new createjs.Shape();
-				// square_2.graphics.beginFill("black").drawRect(0, 0, 90, 90);
-				// square_2.x = 190;
-				// square_2.y = 150;
-				// square_2.w = 90;
-				// square_2.h = 90;
-				// square_2.midx = square_2.x + square_2.w/2;
-				// square_2.midy = square_2.y + square_2.h/2;
-				// circle = new createjs.Shape();
-				// circle.graphics.beginFill("red").drawCircle(0, 0, 40);
-				// circle.x = 145;
-				// circle.y = 195;
-
-				// circle.on("pressmove", function(evt) {
-
-
-				// 		evt.target.x = evt.stageX;
-				// 		evt.target.y = evt.stageY;
-				// 	});
-	
-				
-
-				// circle.on("pressup", function(evt) {
-
-				// 	if (Math.sqrt((evt.stageX - square_1.midx) ** 2 + (evt.stageY - square_1.midy) ** 2 ) <= 
-				// 		Math.sqrt((evt.stageX - square_2.midx) ** 2 + (evt.stageY - square_2.midy) ** 2 )){
-
-				// 		evt.target.x = square_1.x + square_1.w/2;
-				// 		evt.target.y = square_1.y + square_1.h/2;
-				// 	}
-
-					
-				// 	else {
-				// 		evt.target.x = square_2.x + square_2.w/2;
-				// 		evt.target.y = square_2.y + square_2.h/2;
-				// 	}
-	
-				// });
-
-				
-				
-
-			
-			
-			
-
 
 
 
