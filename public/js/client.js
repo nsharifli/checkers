@@ -154,6 +154,7 @@ function init() {
 
 					moves.forEach(function(square){
 						square.alpha = 0.7;
+						square.graphics.beginStroke("red").drawRect(1, 1, 48, 48) ;
 					});
 				})
 
@@ -175,6 +176,8 @@ function init() {
 
 					moves.forEach(function(square){
 						square.alpha = 1;
+						square.graphics.clear()
+						square.graphics.beginFill("black").drawRect(0, 0, 50, 50) ;
 					})
 
 					var closestSquare = moves.find(function(square){
@@ -196,7 +199,7 @@ function init() {
 						piece.boardY = closestSquare.boardY;
 						virtualBoard[closestSquare.boardY][closestSquare.boardX][1] = piece;
 						
-						console.log(paths);
+						
 						if (paths.length != 0) {
 							var selectedPath = paths.find(function(path){
 								var destination = path[path.length - 1];
@@ -204,9 +207,9 @@ function init() {
 								return (destination.boardX == closestSquare.boardX) &&
 								(destination.boardY == closestSquare.boardY);
 							});
-							console.log(selectedPath);
+							
 							for (i = 0 ; i < selectedPath.length; i += 2){
-								console.log(i);
+								
 								stage.removeChild(virtualBoard[selectedPath[i].boardY][selectedPath[i].boardX][1]);
 								virtualBoard[selectedPath[i].boardY][selectedPath[i].boardX][1] = null;
 							};
@@ -219,7 +222,7 @@ function init() {
 
 					}
 					hit = anyHit(virtualBoard);
-					console.log(hit);							
+												
 					
 				})
 				
@@ -297,7 +300,7 @@ function init() {
 	}
 
 	function anyHit (virtualBoard) {
-		currentPlayer = 0;
+		
 
 
 		for (row = 0; row < 6; row++) {
@@ -323,7 +326,7 @@ function init() {
 
 
 	function canHitLeft (position, virtualBoard) {
-		currentPlayer = 0;
+		
 
 		if (position.boardX > 1 && position.boardY < 6){
 
@@ -343,7 +346,7 @@ function init() {
 	}
 
 	function canHitRight(position, virtualBoard){
-		currentPlayer = 0;
+		
 
 		if (position.boardX < 6 && position.boardY < 6) {
 			var road = {};
