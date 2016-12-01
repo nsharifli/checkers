@@ -55,7 +55,7 @@ socket.on('connection', function(client){
 					action: "START",
 					turn: 0
 				})
-				//oyuna qosul
+
 			}
 			else {
 				games[gameId] = {

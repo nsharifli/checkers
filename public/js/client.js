@@ -22,31 +22,28 @@ function init() {
 			}
 		}
 
-		
 		else {
 			if (position.boardY < 1 || position.boardX < 1){
 				return null;
 			}
+
 			else {
-			var left = virtualBoard[position.boardY - 1][position.boardX - 1];
-			return left;
+				var left = virtualBoard[position.boardY - 1][position.boardX - 1];
+				return left;
 			}
 		}
-
-		
 	}
 
 
 	function findRight(position, virtualBoard) {
 		if (currentPlayer) {
-
 			if (position.boardX > 6 || position.boardY > 6){
-			return null;
+				return null;
 			}
+
 			else {
 				var right = virtualBoard[position.boardY + 1][position.boardX + 1];
 				return right;
-
 			}
 		}
 
@@ -54,101 +51,67 @@ function init() {
 			if (position.boardX > 6 || position.boardY < 1){
 				return null;
 			}
+
 			else {
 				var right = virtualBoard[position.boardY - 1][position.boardX + 1];
 				return right;
 			}
 		}
-
-
 	}
 
 
 	function canHitLeft (position, virtualBoard) {
+		var road = {};
+		var left = findLeft(position, virtualBoard);
+		if (left == null || left[1] == null || currentPlayer == left[1].player) {
+			return null;
+		}
+
+		var leftOfLeft = findLeft({boardX: left[1].boardX, boardY: left[1].boardY}, virtualBoard);
+		if (leftOfLeft == null || leftOfLeft[1] != null) {
+			return null;
+		}
+
+		road.enemy = left[1];
 
 		if (currentPlayer) {
-
-			var road = {};
-			var left = findLeft(position, virtualBoard);
-			if (left == null || left[1] == null || currentPlayer == left[1].player) {
-				return null;
-			}
-
-			var leftOfLeft = findLeft({boardX: left[1].boardX, boardY: left[1].boardY}, virtualBoard);
-			if (leftOfLeft == null || leftOfLeft[1] != null) {
-				return null;
-			}
-
-			road.enemy = left[1];
 			road.destination = {boardX: left[1].boardX - 1, boardY: left[1].boardY + 1};
-
-			return road;
-			
 		}
 
 		else {
-			var road = {};
-			var left = findLeft(position, virtualBoard);
-			if (left == null || left[1] == null || currentPlayer == left[1].player) {
-				return null;
-			}
-
-			var leftOfLeft = findLeft({boardX: left[1].boardX, boardY: left[1].boardY}, virtualBoard);
-			if (leftOfLeft == null || leftOfLeft[1] != null) {
-				return null;
-			}
-
-			road.enemy = left[1];
 			road.destination = {boardX: left[1].boardX - 1, boardY: left[1].boardY - 1};
+		}	
 
-			return road;
-		}
-		
-
-
+		return road;
 	}
 
 
 	function canHitRight(position, virtualBoard){
 
+		var road = {};
+		var right = findRight(position, virtualBoard);
+		if (right == null || right[1] == null || currentPlayer == right[1].player) {
+			return null;
+		}
+
+		var rightOfRight = findRight({boardX: right[1].boardX, boardY: right[1].boardY}, virtualBoard);
+		if (rightOfRight == null || rightOfRight[1] != null) {
+			return null;
+		}
+
+		road.enemy = right[1];
+
 		if (currentPlayer) {
-
-			var road = {};
-			var right = findRight(position, virtualBoard);
-			if (right == null || right[1] == null || currentPlayer == right[1].player) {
-				return null;
-			}
-
-			var rightOfRight = findRight({boardX: right[1].boardX, boardY: right[1].boardY}, virtualBoard);
-			if (rightOfRight == null || rightOfRight[1] != null) {
-				return null;
-			}
-
-			road.enemy = right[1];
 			road.destination = {boardX: right[1].boardX + 1, boardY: right[1].boardY + 1};
-
-			return road;
-			
 		}
 
 		else {
-			var road = {};
-			var right = findRight(position, virtualBoard);
-			if (right == null || right[1] == null || currentPlayer == right[1].player) {
-				return null;
-			}
-
-			var rightOfRight = findRight({boardX: right[1].boardX, boardY: right[1].boardY}, virtualBoard);
-			if (rightOfRight == null || rightOfRight[1] != null) {
-				return null;
-			}
-
-			road.enemy = right[1];
 			road.destination = {boardX: right[1].boardX + 1, boardY: right[1].boardY - 1};
-
-			return road;
 		}
-	};
+		
+		return road;
+		
+	}
 
 
 	function anyHit (virtualBoard) {
@@ -158,13 +121,12 @@ function init() {
 				if (piece == null || piece.player != currentPlayer) {
 					continue;
 				}
-
-				var leftEnemy = canHitLeft({boardX: piece.boardX, boardY: piece.boardY}, virtualBoard);
-				var rightEnemy = canHitRight({boardX:piece.boardX, boardY: piece.boardY},virtualBoard);
+				var position = {boardX: piece.boardX, boardY: piece.boardY}
+				var leftEnemy = canHitLeft(position, virtualBoard);
+				var rightEnemy = canHitRight(position,virtualBoard);
 
 				if (leftEnemy != null || rightEnemy != null) {
 					return true;
-
 				}
 			}
 		}
@@ -174,8 +136,6 @@ function init() {
 		
 
 	function availableHits (position, virtualBoard) {
-		// hit function should determine the final place of piece after hit, and remove the enemy pieces;
-		// it should return the destination cell and enemy pieces' locations;
 		var listOfPaths = [];
 		var leftEnemy = canHitLeft(position, virtualBoard);
 		var rightEnemy = canHitRight(position, virtualBoard);
@@ -190,10 +150,10 @@ function init() {
 			if (leftPath.length == 0) {
 				leftPath.push([leftEnemy.enemy, leftEnemy.destination]);
 			}
+
 			listOfPaths = listOfPaths.concat(leftPath);
 		}
 		
-
 		if (rightEnemy != null) {
 			var rightPath = availableHits(rightEnemy.destination, virtualBoard);
 			
@@ -204,6 +164,7 @@ function init() {
 			if (rightPath.length == 0) {
 				rightPath.push([rightEnemy.enemy, rightEnemy.destination]);
 			}
+
 			listOfPaths = listOfPaths.concat(rightPath);	
 		}
 
@@ -215,9 +176,10 @@ function init() {
 		var moves = [];
 		if (currentTurn == currentPlayer){
 			
-
 			if (hit) {
+
 				hits = availableHits({boardX: piece.boardX, boardY: piece.boardY}, virtualBoard);
+
 				for (i = 0; i < hits.length; i++) {
 					var path = hits[i];
 					destination = path[path.length - 1];
@@ -228,9 +190,7 @@ function init() {
 				return moves;
 			}
 
-
 			var left = findLeft(piece, virtualBoard);
-
 			if (left != null && left[1] == null) {
 				moves.push(left[0]);
 			}
@@ -267,7 +227,6 @@ function init() {
 		var squares = [];
 		for (row = 0; row < 8; row++) {
 			for (col = 0; col < 8; col++) {
-
 				square = new createjs.Shape();
 				(col + row) % 2 == 0 ? square.graphics.beginFill("grey").drawRect(0, 0, 50, 50) : 
 				square.graphics.beginFill("black").drawRect(0, 0, 50, 50);
@@ -280,6 +239,7 @@ function init() {
 				board.addChild(square);
 			}
 		}
+
 		return virtualBoard;
 	}
 
@@ -294,12 +254,10 @@ function init() {
 				piece = new createjs.Shape();
 				piece.x = virtualBoard[row][col][0].x + 25;
 				piece.y = virtualBoard[row][col][0].y + 25;
-
 				piece.boardX = col;
 				piece.boardY = row;
 				
-				if ( ([0, 1, 2].indexOf(row) != -1) && ((row + col) % 2 == 1)) {
-					
+				if ( ([0, 1, 2].indexOf(row) != -1) && ((row + col) % 2 == 1)) {					
 					piece.graphics.beginFill("red").drawCircle(0,0,20);
 					piece.player = 1;
 					board.addChild(piece);
@@ -311,28 +269,22 @@ function init() {
 					piece.player = 0;
 					board.addChild(piece);
 					virtualBoard[row][col][1] = piece;
-
 				}
 
 				piece.on("pressmove", function(evt){
-
 					var piece = evt.currentTarget;
 					if (piece.player != currentPlayer) {
 						return;
 					}
-
+					var position = {boardX: piece.boardX, boardY: piece.boardY};
 					piece.x = evt.stageX;
 					piece.y = evt.stageY;
-
 					var moves = availableMoves(piece, virtualBoard);
-					var paths = availableHits({boardX: piece.boardX, boardY: piece.boardY}, virtualBoard);
+					var paths = availableHits(position, virtualBoard);
 					paths.forEach(function(path){
 						for (i = 0; i < path.length; i++){
 							virtualBoard[path[i].boardY][path[i].boardX][0].alpha = 0.8;
-
 						}
-
-
 					});
 
 					moves.forEach(function(square){
@@ -343,19 +295,18 @@ function init() {
 
 				piece.on("pressup", function(evt) {
 					var piece = evt.currentTarget;
+					if (piece.player != currentPlayer) {
+						return;
+					}
+					var position = {boardX: piece.boardX, boardY: piece.boardY};				
 					var moves = availableMoves(piece, virtualBoard);
 					var initial_square = virtualBoard[piece.boardY][piece.boardX];
-					var paths = availableHits({boardX: piece.boardX, boardY: piece.boardY}, virtualBoard);
+					var paths = availableHits(position, virtualBoard);
 					paths.forEach(function(path){
 						for (i = 0; i < path.length; i++){
 							virtualBoard[path[i].boardY][path[i].boardX][0].alpha = 1;
-
 						}
-
-
 					});
-					
-
 
 					moves.forEach(function(square){
 						square.alpha = 1;
@@ -374,7 +325,7 @@ function init() {
 					}
 
 					else {
-						var paths = availableHits({boardX: piece.boardX, boardY: piece.boardY}, virtualBoard);
+						var paths = availableHits(position, virtualBoard);
 						piece.x = closestSquare.x + 25;
 						piece.y = closestSquare.y + 25;
 						virtualBoard[piece.boardY][piece.boardX][1] = null;
@@ -385,31 +336,25 @@ function init() {
 							finalY: closestSquare.boardY
 						};
 
-
 						piece.boardX = closestSquare.boardX;
 						piece.boardY = closestSquare.boardY;
 						virtualBoard[closestSquare.boardY][closestSquare.boardX][1] = piece;
 						
-						var taken_enemies = [];
-						
+						var taken_enemies = [];						
 						if (paths.length != 0) {
 							var selectedPath = paths.find(function(path){
 								var destination = path[path.length - 1];
-
 								return (destination.boardX == closestSquare.boardX) &&
 								(destination.boardY == closestSquare.boardY);
 							});
-							console.log(paths);
 
-							
 							for (i = 0 ; i < selectedPath.length; i += 2){
-
 								taken_enemy = virtualBoard[selectedPath[i].boardY][selectedPath[i].boardX][1]
 								board.removeChild(taken_enemy);
 								enemy = {
 									boardX: taken_enemy.boardX,
 									boardY: taken_enemy.boardY
-								}
+								};
 								taken_enemies.push(enemy);
 								virtualBoard[selectedPath[i].boardY][selectedPath[i].boardX][1] = null;
 							};
@@ -421,59 +366,36 @@ function init() {
 							move: move,
 							taken_enemies: taken_enemies
 						})
-
 						currentTurn = currentTurn ? 0 : 1;
-
 					}
-
 					hit = anyHit(virtualBoard);
-												
-					
-				})
-				
+				})				
 			}
-		}
-		
-
-
-		
-		console.log(hit);
-
-		
-		//can hit
+		}		
+		console.log("hit flag ", hit);
 	}
 
 	var board = new createjs.Container();
+
 	// board.setTransform(0, 0, 1, 1, 0);
 	var stage = new createjs.Stage("demoCanvas");
 	stage.addChild(board);
-
 	var virtualBoard = initBoard(board);
-
-
-
-	
 
 	createjs.Ticker.on("tick", function tick(event) {  
 		stage.update(event);
 	});
-	
 	createjs.Ticker.setFPS(20);
 
 
 
 
-	//Socket demo;
-
-	// Create SocketIO instance, connect
 	var socket = new io({reconnection: false});
 	socket.connect();
 	var gameId = "";
 
 	var pathnames = window.location.pathname.split("/");
-	
 	if (pathnames.length == 3){
-
 		gameId = pathnames[2];		
 	}
 
@@ -484,7 +406,6 @@ function init() {
 
 	console.log(gameId);
 
-	// Add a connect listener
 	socket.on('connect',function() {
 		console.log('Client has connected to the server!');
 		socket.send({
@@ -492,27 +413,30 @@ function init() {
 			gameId: gameId
 		});
 	});
-	// Add a connect listener
+
 	socket.on('message',function(msg) {
 		console.log('Received a message from the server!',msg);
 		if (msg["action"] == "START"){
 			initPieces(stage, board, virtualBoard);
 			currentPlayer = msg["player"];
 			currentTurn = 0;
-
-
 		}
 
 		else if (msg["action"] == "MOVE"){
+			var move = msg["move"];
+			var initY = move["initialY"];
+			var initX = move["initialX"];
+			var finX = move["finalX"];
+			var finY = move["finalY"];
 			currentTurn = currentTurn ? 0 : 1;
-			moved_piece = virtualBoard[msg["move"]["initialY"]][msg["move"]["initialX"]][1];
-			board.removeChild(virtualBoard[msg["move"]["initialY"]][msg["move"]["initialX"]][1]);
-			virtualBoard[msg["move"]["initialY"]][msg["move"]["initialX"]][1] = null;
-			moved_piece.boardY = msg["move"]["finalY"];
-			moved_piece.boardX = msg["move"]["finalX"];
-			moved_piece.x = virtualBoard[msg["move"]["finalY"]][msg["move"]["finalX"]][0].x + 25;
-			moved_piece.y = virtualBoard[msg["move"]["finalY"]][msg["move"]["finalX"]][0].y + 25;
-			virtualBoard[msg["move"]["finalY"]][msg["move"]["finalX"]][1] = moved_piece;
+			moved_piece = virtualBoard[initY][initX][1];
+			board.removeChild(virtualBoard[initY][initX][1]);
+			virtualBoard[initY][initX][1] = null;
+			moved_piece.boardY = finY;
+			moved_piece.boardX = finX
+			moved_piece.x = virtualBoard[finY][finX][0].x + 25;
+			moved_piece.y = virtualBoard[finY][finX][0].y + 25;
+			virtualBoard[finY][finX][1] = moved_piece;
 			board.addChild(moved_piece);
 
 
@@ -523,19 +447,17 @@ function init() {
 			})
 			
 			hit = anyHit(virtualBoard);
-			console.log(hit)
+			console.log("hit flag ", hit)
+			console.log("Following move has been done ", msg);
 
 		}
 
 
 	});
-	// Add a disconnect listener
+
 	socket.on('disconnect',function() {
 		console.log('The client has disconnected!');
 	});
-
-
-
 }
 
 
