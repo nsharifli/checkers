@@ -270,12 +270,16 @@ function Checkers() {
 					piece.player = 0;
 					board.addChild(piece);
 					virtualBoard[row][col][1] = piece;
-				}
+				}				
 
 				piece.on("pressmove", function(evt){
 					var piece = evt.currentTarget;
 					if (piece.player != currentPlayer) {
 						return;
+					}
+					if (currentPlayer){
+						evt.stageX = 800 - evt.stageX;
+						evt.stageY = 600 - evt.stageY;
 					}
 					var position = {boardX: piece.boardX, boardY: piece.boardY};
 					piece.x = evt.stageX;
@@ -296,6 +300,10 @@ function Checkers() {
 
 				piece.on("pressup", function(evt) {
 					var piece = evt.currentTarget;
+					if (currentPlayer){
+						evt.stageX = 800 - evt.stageX;
+						evt.stageY = 600 - evt.stageY;
+					}
 					if (piece.player != currentPlayer) {
 						return;
 					}
@@ -392,8 +400,16 @@ function Checkers() {
 			console.log('Received a message from the server!',msg);
 			if (msg["action"] == "START"){
 				initPieces(board);
+				
 				currentPlayer = msg["player"];
 				currentTurn = 0;
+
+				if (currentPlayer){
+					board.regX = 800;
+					board.regY = 600;
+					board.rotation = 180;
+
+				}
 			}
 
 			else if (msg["action"] == "MOVE"){
@@ -442,6 +458,8 @@ function Checkers() {
 
 		virtualBoard = initBoard(board);
 
+		
+
 
 		gameId = "";
 		var pathnames = window.location.pathname.split("/");
@@ -462,9 +480,22 @@ function Checkers() {
 			stage.update(event);
 		});
 		createjs.Ticker.setFPS(20);
+
+
 	}
 
 
 	init();
+
+
+		// 	if (currentPlayer){
+		// 	stage.regX = 800;
+		// 	stage.regY = 600;
+		// 	stage.rotation = 180;
+		// }
+
+
+
+
 
 }
