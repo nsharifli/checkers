@@ -1,15 +1,18 @@
 console.log("starting client");
-		
-			
 
-function init() {
+
+function Checkers() {
 
 	var hit;
 	var currentPlayer;
 	var currentTurn;
+	var socket;
+	var gameId;
+	var board;
+	var virtualBoard;
 
 
-	function findLeft(position, virtualBoard) {
+	function findLeft(position) {
 
 		if (currentPlayer) {
 			if (position.boardY > 6 || position.boardX < 1){
@@ -35,7 +38,7 @@ function init() {
 	}
 
 
-	function findRight(position, virtualBoard) {
+	function findRight(position) {
 		if (currentPlayer) {
 			if (position.boardX > 6 || position.boardY > 6){
 				return null;
@@ -60,7 +63,7 @@ function init() {
 	}
 
 
-	function canHitLeft (position, virtualBoard) {
+	function canHitLeft (position) {
 		var road = {};
 		var left = findLeft(position, virtualBoard);
 		if (left == null || left[1] == null || currentPlayer == left[1].player) {
@@ -86,7 +89,7 @@ function init() {
 	}
 
 
-	function canHitRight(position, virtualBoard){
+	function canHitRight(position){
 
 		var road = {};
 		var right = findRight(position, virtualBoard);
@@ -110,11 +113,10 @@ function init() {
 		}
 		
 		return road;
-		
 	}
 
 
-	function anyHit (virtualBoard) {
+	function anyHit() {
 		for (row = 0; row < 8; row++) {
 			for (col = 0; col < 8; col++){
 				var piece = virtualBoard[row][col][1];
@@ -135,7 +137,7 @@ function init() {
 	}
 		
 
-	function availableHits (position, virtualBoard) {
+	function availableHits(position) {
 		var listOfPaths = [];
 		var leftEnemy = canHitLeft(position, virtualBoard);
 		var rightEnemy = canHitRight(position, virtualBoard);
@@ -172,7 +174,7 @@ function init() {
 	}
 
 
-	function availableMoves(piece, virtualBoard) {
+	function availableMoves(piece) {
 		var moves = [];
 		if (currentTurn == currentPlayer){
 			
@@ -206,7 +208,6 @@ function init() {
 		else {
 			return moves;
 		}
-
 	}
 
 
@@ -244,7 +245,7 @@ function init() {
 	}
 
 
-	function initPieces(stage, board, virtualBoard) {
+	function initPieces(board) {
 		var piece;
 		var initial_positions = [0, 1, 2, 5, 6, 7];
 
@@ -375,90 +376,95 @@ function init() {
 		console.log("hit flag ", hit);
 	}
 
-	var board = new createjs.Container();
 
-	// board.setTransform(0, 0, 1, 1, 0);
-	var stage = new createjs.Stage("demoCanvas");
-	stage.addChild(board);
-	var virtualBoard = initBoard(board);
+	function initSocket() {
+		var socket = new io({reconnection: false});
 
-	createjs.Ticker.on("tick", function tick(event) {  
-		stage.update(event);
-	});
-	createjs.Ticker.setFPS(20);
-
-
-
-
-	var socket = new io({reconnection: false});
-	socket.connect();
-	var gameId = "";
-
-	var pathnames = window.location.pathname.split("/");
-	if (pathnames.length == 3){
-		gameId = pathnames[2];		
-	}
-
-	if (gameId == "") {
-		gameId = Math.floor(Math.random() * 1000000).toString();
-	}
-
-
-	console.log(gameId);
-
-	socket.on('connect',function() {
-		console.log('Client has connected to the server!');
-		socket.send({
-			action: "CONNECT",
-			gameId: gameId
+		socket.on('connect',function() {
+			console.log('Client has connected to the server!');
+			socket.send({
+				action: "CONNECT",
+				gameId: gameId
+			});
 		});
-	});
 
-	socket.on('message',function(msg) {
-		console.log('Received a message from the server!',msg);
-		if (msg["action"] == "START"){
-			initPieces(stage, board, virtualBoard);
-			currentPlayer = msg["player"];
-			currentTurn = 0;
+		socket.on('message',function(msg) {
+			console.log('Received a message from the server!',msg);
+			if (msg["action"] == "START"){
+				initPieces(board);
+				currentPlayer = msg["player"];
+				currentTurn = 0;
+			}
+
+			else if (msg["action"] == "MOVE"){
+				var move = msg["move"];
+				var initY = move["initialY"];
+				var initX = move["initialX"];
+				var finX = move["finalX"];
+				var finY = move["finalY"];
+				currentTurn = currentTurn ? 0 : 1;
+
+				moved_piece = virtualBoard[initY][initX][1];
+				moved_piece.x = virtualBoard[finY][finX][0].x + 25;
+				moved_piece.y = virtualBoard[finY][finX][0].y + 25;
+
+				virtualBoard[initY][initX][1] = null;
+				virtualBoard[finY][finX][1] = moved_piece;
+				moved_piece.boardY = finY;
+				moved_piece.boardX = finX;
+
+				msg["taken_enemies"].forEach(function(enemy){
+					var taken_piece = virtualBoard[enemy["boardY"]][enemy["boardX"]][1];
+					board.removeChild(taken_piece);
+					virtualBoard[enemy["boardY"]][enemy["boardX"]][1] = null;
+				})
+				
+				hit = anyHit(virtualBoard);
+				console.log("hit flag ", hit)
+				console.log("Following move has been done ", msg);
+
+			}
+		});
+
+		socket.on('disconnect',function() {
+			console.log('The client has disconnected!');
+		});
+
+		return socket;
+	}
+
+
+	function init() {
+		var stage = new createjs.Stage("demoCanvas");
+
+		board = new createjs.Container();
+		stage.addChild(board);
+
+		virtualBoard = initBoard(board);
+
+
+		gameId = "";
+		var pathnames = window.location.pathname.split("/");
+		if (pathnames.length == 3){
+			gameId = pathnames[2];		
 		}
-
-		else if (msg["action"] == "MOVE"){
-			var move = msg["move"];
-			var initY = move["initialY"];
-			var initX = move["initialX"];
-			var finX = move["finalX"];
-			var finY = move["finalY"];
-			currentTurn = currentTurn ? 0 : 1;
-			moved_piece = virtualBoard[initY][initX][1];
-			board.removeChild(virtualBoard[initY][initX][1]);
-			virtualBoard[initY][initX][1] = null;
-			moved_piece.boardY = finY;
-			moved_piece.boardX = finX
-			moved_piece.x = virtualBoard[finY][finX][0].x + 25;
-			moved_piece.y = virtualBoard[finY][finX][0].y + 25;
-			virtualBoard[finY][finX][1] = moved_piece;
-			board.addChild(moved_piece);
-
-
-			msg["taken_enemies"].forEach(function(enemy){
-				taken_piece = virtualBoard[enemy["boardY"]][enemy["boardX"]][1];
-				board.removeChild(taken_piece);
-				virtualBoard[enemy["boardY"]][enemy["boardX"]][1] = null;
-			})
-			
-			hit = anyHit(virtualBoard);
-			console.log("hit flag ", hit)
-			console.log("Following move has been done ", msg);
-
+		if (gameId == "") {
+			gameId = Math.floor(Math.random() * 1000000).toString();
 		}
+		console.log(gameId);
 
 
-	});
+		socket = initSocket();
+		socket.connect();
 
-	socket.on('disconnect',function() {
-		console.log('The client has disconnected!');
-	});
+
+		createjs.Ticker.on("tick", function tick(event) {  
+			stage.update(event);
+		});
+		createjs.Ticker.setFPS(20);
+	}
+
+
+	init();
+
 }
-
-
-
