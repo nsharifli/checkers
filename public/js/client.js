@@ -12,9 +12,9 @@ function Checkers() {
 	var virtualBoard;
 
 
-	function findLeft(position) {
+	function findLeft(position, direction) {
 
-		if (currentPlayer) {
+		if (direction) {
 			if (position.boardY > 6 || position.boardX < 1){
 				return null;
 			}
@@ -38,8 +38,9 @@ function Checkers() {
 	}
 
 
-	function findRight(position) {
-		if (currentPlayer) {
+	function findRight(position, direction) {
+
+		if (direction) {
 			if (position.boardX > 6 || position.boardY > 6){
 				return null;
 			}
@@ -63,21 +64,21 @@ function Checkers() {
 	}
 
 
-	function canHitLeft (position) {
+	function canHitLeft (position, direction) {
 		var road = {};
-		var left = findLeft(position, virtualBoard);
+		var left = findLeft(position, direction);
 		if (left == null || left[1] == null || currentPlayer == left[1].player) {
 			return null;
 		}
 
-		var leftOfLeft = findLeft({boardX: left[1].boardX, boardY: left[1].boardY}, virtualBoard);
+		var leftOfLeft = findLeft({boardX: left[1].boardX, boardY: left[1].boardY}, direction);
 		if (leftOfLeft == null || leftOfLeft[1] != null) {
 			return null;
 		}
 
 		road.enemy = left[1];
 
-		if (currentPlayer) {
+		if (direction) {
 			road.destination = {boardX: left[1].boardX - 1, boardY: left[1].boardY + 1};
 		}
 
@@ -89,22 +90,22 @@ function Checkers() {
 	}
 
 
-	function canHitRight(position){
+	function canHitRight(position, direction){
 
 		var road = {};
-		var right = findRight(position, virtualBoard);
+		var right = findRight(position, direction);
 		if (right == null || right[1] == null || currentPlayer == right[1].player) {
 			return null;
 		}
 
-		var rightOfRight = findRight({boardX: right[1].boardX, boardY: right[1].boardY}, virtualBoard);
+		var rightOfRight = findRight({boardX: right[1].boardX, boardY: right[1].boardY}, direction);
 		if (rightOfRight == null || rightOfRight[1] != null) {
 			return null;
 		}
 
 		road.enemy = right[1];
 
-		if (currentPlayer) {
+		if (direction) {
 			road.destination = {boardX: right[1].boardX + 1, boardY: right[1].boardY + 1};
 		}
 
@@ -124,10 +125,12 @@ function Checkers() {
 					continue;
 				}
 				var position = {boardX: piece.boardX, boardY: piece.boardY}
-				var leftEnemy = canHitLeft(position, virtualBoard);
-				var rightEnemy = canHitRight(position,virtualBoard);
+				var leftEnemy = canHitLeft(position, currentPlayer);
+				var rightEnemy = canHitRight(position, currentPlayer);
+				var leftEnemyRev = piece.king ? canHitLeft(position, !currentPlayer) : null;
+				var rightEnemyRev = piece.king ? canHitRight(position, !currentPlayer): null;
 
-				if (leftEnemy != null || rightEnemy != null) {
+				if (leftEnemy != null || rightEnemy != null || leftEnemyRev != null || rightEnemyRev != null) {
 					return true;
 				}
 			}
@@ -137,37 +140,34 @@ function Checkers() {
 	}
 		
 
-	function availableHits(position) {
+	function availableHits(position, isKing, prevEnemy) {
 		var listOfPaths = [];
-		var leftEnemy = canHitLeft(position, virtualBoard);
-		var rightEnemy = canHitRight(position, virtualBoard);
+		var leftEnemy = canHitLeft(position, currentPlayer);
+		var rightEnemy = canHitRight(position, currentPlayer);
+		var leftEnemyRev = isKing ? canHitLeft(position, !currentPlayer) : null;
+		var rightEnemyRev = isKing ? canHitRight(position, !currentPlayer): null;
+		var enemyList = [leftEnemy, rightEnemy, leftEnemyRev, rightEnemyRev];
 
-		if (leftEnemy != null) {
-			var leftPath = availableHits (leftEnemy.destination, virtualBoard);
 
-			for (i = 0; i < leftPath.length; i++) {
-				leftPath[i].unshift(leftEnemy.enemy, leftEnemy.destination);	
+		for (var enemyIndex in enemyList){
+			var enemy_road = enemyList[enemyIndex];
+
+			if (enemyList[enemyIndex] != null) {
+				if (prevEnemy != enemyList[enemyIndex].enemy){
+
+					var path = availableHits(enemy_road.destination, isKing, enemyList[enemyIndex].enemy);
+
+					for (i = 0; i < path.length; i++) {
+						path[i].unshift(enemy_road.enemy, enemy_road.destination);	
+					}
+
+					if (path.length == 0) {
+						path.push([enemy_road.enemy, enemy_road.destination]);
+					}
+
+					listOfPaths = listOfPaths.concat(path);
+				}
 			}
-
-			if (leftPath.length == 0) {
-				leftPath.push([leftEnemy.enemy, leftEnemy.destination]);
-			}
-
-			listOfPaths = listOfPaths.concat(leftPath);
-		}
-		
-		if (rightEnemy != null) {
-			var rightPath = availableHits(rightEnemy.destination, virtualBoard);
-			
-			for (i = 0; i < rightPath.length; i++) {
-				rightPath[i].unshift(rightEnemy.enemy, rightEnemy.destination);	
-			}
-
-			if (rightPath.length == 0) {
-				rightPath.push([rightEnemy.enemy, rightEnemy.destination]);
-			}
-
-			listOfPaths = listOfPaths.concat(rightPath);	
 		}
 
 		return listOfPaths;	
@@ -180,7 +180,7 @@ function Checkers() {
 			
 			if (hit) {
 
-				hits = availableHits({boardX: piece.boardX, boardY: piece.boardY}, virtualBoard);
+				hits = availableHits({boardX: piece.boardX, boardY: piece.boardY}, piece.king, null);
 
 				for (i = 0; i < hits.length; i++) {
 					var path = hits[i];
@@ -192,17 +192,34 @@ function Checkers() {
 				return moves;
 			}
 
-			var left = findLeft(piece, virtualBoard);
+
+			
+			var left = findLeft(piece, currentPlayer);
 			if (left != null && left[1] == null) {
 				moves.push(left[0]);
 			}
 		
-			var right = findRight(piece, virtualBoard);
+			var right = findRight(piece, currentPlayer);
 			if (right != null && right[1] == null) {
 				moves.push(right[0]);
 			}
+
+			if (piece.king == 1){
+				var leftRev = findLeft(piece, !currentPlayer);
+				if (leftRev != null && leftRev[1] == null) {
+					moves.push(leftRev[0]);
+				}
+			
+				var rightRev = findRight(piece, !currentPlayer);
+				if (rightRev != null && rightRev[1] == null) {
+					moves.push(rightRev[0]);
+				}
+			}
+
 			
 			return moves;
+			
+
 		}
 
 		else {
@@ -257,6 +274,7 @@ function Checkers() {
 				piece.y = virtualBoard[row][col][0].y + 25;
 				piece.boardX = col;
 				piece.boardY = row;
+				piece.king = 0;
 				
 				if ( ([0, 1, 2].indexOf(row) != -1) && ((row + col) % 2 == 1)) {					
 					piece.graphics.beginFill("red").drawCircle(0,0,20);
@@ -284,8 +302,8 @@ function Checkers() {
 					var position = {boardX: piece.boardX, boardY: piece.boardY};
 					piece.x = evt.stageX;
 					piece.y = evt.stageY;
-					var moves = availableMoves(piece, virtualBoard);
-					var paths = availableHits(position, virtualBoard);
+					var moves = availableMoves(piece);
+					var paths = availableHits(position, piece.king);
 					paths.forEach(function(path){
 						for (i = 0; i < path.length; i++){
 							virtualBoard[path[i].boardY][path[i].boardX][0].alpha = 0.8;
@@ -310,7 +328,7 @@ function Checkers() {
 					var position = {boardX: piece.boardX, boardY: piece.boardY};				
 					var moves = availableMoves(piece, virtualBoard);
 					var initial_square = virtualBoard[piece.boardY][piece.boardX];
-					var paths = availableHits(position, virtualBoard);
+					var paths = availableHits(position, piece.king);
 					paths.forEach(function(path){
 						for (i = 0; i < path.length; i++){
 							virtualBoard[path[i].boardY][path[i].boardX][0].alpha = 1;
@@ -334,7 +352,8 @@ function Checkers() {
 					}
 
 					else {
-						var paths = availableHits(position, virtualBoard);
+						
+						var paths = availableHits(position, piece.king, null);
 						piece.x = closestSquare.x + 25;
 						piece.y = closestSquare.y + 25;
 						virtualBoard[piece.boardY][piece.boardX][1] = null;
@@ -367,16 +386,36 @@ function Checkers() {
 								taken_enemies.push(enemy);
 								virtualBoard[selectedPath[i].boardY][selectedPath[i].boardX][1] = null;
 							};
+
 						}
+
+						var king = false;
+						if (currentPlayer){
+							if (closestSquare.boardY == 7){
+								piece.king = 1;
+								piece.graphics.beginFill("grey").drawPolyStar(0, 0, 20, 5, 0.6, -90);
+								king = true;
+							}
+						}
+						else {
+							if (closestSquare.boardY == 0) {
+								piece.king = 1;
+								piece.graphics.beginFill("grey").drawPolyStar(0, 0, 20, 5, 0.6, -90);
+								king = true;
+							}
+						}
+					
 
 						socket.send({
 							gameId: gameId,
 							action: "MOVE",
 							move: move,
-							taken_enemies: taken_enemies
+							taken_enemies: taken_enemies,
+							king: king
 						})
 						currentTurn = currentTurn ? 0 : 1;
 					}
+					
 					hit = anyHit(virtualBoard);
 				})				
 			}
@@ -423,6 +462,11 @@ function Checkers() {
 				moved_piece = virtualBoard[initY][initX][1];
 				moved_piece.x = virtualBoard[finY][finX][0].x + 25;
 				moved_piece.y = virtualBoard[finY][finX][0].y + 25;
+				if (msg["king"] == true){
+					moved_piece.king = 1;
+					moved_piece.graphics.beginFill("grey").drawPolyStar(0, 0, 20, 5, 0.6, -90);
+
+				}
 
 				virtualBoard[initY][initX][1] = null;
 				virtualBoard[finY][finX][1] = moved_piece;
