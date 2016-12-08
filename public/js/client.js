@@ -511,12 +511,17 @@ function Checkers() {
 				blurryBox.alpha = 0.7;
 				board.addChild(blurryBox);
 				if (msg["reason"] == "GAMEOVER"){
-					var text = new createjs.Text("Game Over", "20px Arial", "#000000");
+					var textString = "You Lost";
+					var playerId = myPlayer ? "player_1" : "player_0";
+					if (numberOfPieces[playerId] > 0){
+						textString = "You Won";
+					}
+					var text = new createjs.Text(textString, "20px Arial", "#000000");
 					text.x = 150;
 					text.y = 200;
 					board.addChild(text);
 					if (myPlayer){
-						text.regX = 450;
+						text.regX = 100;
 						text.regY = 0;
 						text.rotation = 180;
 					}

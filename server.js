@@ -90,21 +90,23 @@ socket.on('connection', function(client){
 				games[gameId]["turn"] = 0;
 			}
 
-			if ( msg["numberOfPieces"]["player_0"] == 0 || msg["numberOfPieces"]["player_1"] == 0) {
-				games[gameId]["player_1"].send({
-					action: "END",
-					reason: "GAMEOVER"
-				});
-
-				games[gameId]["player_0"].send({
-					action: "END",
-					reason: "GAMEOVER"
-				});
-				games[gameId]["player_1"].disconnect();
-				games[gameId]["player_0"].disconnect();
-
-
+			if (msg["numberOfPieces"]["player_0"] == 0 || msg["numberOfPieces"]["player_1"] == 0) {
+				var myGame = games[client.gameId];
 				delete games[client.gameId];
+				myGame["player_1"].send({
+					action: "END",
+					reason: "GAMEOVER"
+				});
+
+				myGame["player_0"].send({
+					action: "END",
+					reason: "GAMEOVER"
+				});
+				myGame["player_1"].disconnect();
+				myGame["player_0"].disconnect();
+
+
+				
 
 
 			}
