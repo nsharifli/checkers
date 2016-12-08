@@ -4,12 +4,13 @@ console.log("starting client");
 function Checkers() {
 
 	var hit;
-	var currentPlayer;
-	var currentTurn;
+	var myPlayer; // Assigned at the beginning of the game, 0 for white, 1 for red pieces
+	var currentTurn; // Changes after each turn, 0 turn for white, 1 turn for red pieces
 	var socket;
 	var gameId;
 	var board;
 	var virtualBoard;
+	var numberOfPieces = {player_0: 12, player_1: 12}
 
 
 	function findLeft(position, direction) {
@@ -67,7 +68,7 @@ function Checkers() {
 	function canHitLeft (position, direction) {
 		var road = {};
 		var left = findLeft(position, direction);
-		if (left == null || left[1] == null || currentPlayer == left[1].player) {
+		if (left == null || left[1] == null || myPlayer == left[1].player) {
 			return null;
 		}
 
@@ -94,7 +95,7 @@ function Checkers() {
 
 		var road = {};
 		var right = findRight(position, direction);
-		if (right == null || right[1] == null || currentPlayer == right[1].player) {
+		if (right == null || right[1] == null || myPlayer == right[1].player) {
 			return null;
 		}
 
@@ -121,14 +122,14 @@ function Checkers() {
 		for (row = 0; row < 8; row++) {
 			for (col = 0; col < 8; col++){
 				var piece = virtualBoard[row][col][1];
-				if (piece == null || piece.player != currentPlayer) {
+				if (piece == null || piece.player != myPlayer) {
 					continue;
 				}
 				var position = {boardX: piece.boardX, boardY: piece.boardY}
-				var leftEnemy = canHitLeft(position, currentPlayer);
-				var rightEnemy = canHitRight(position, currentPlayer);
-				var leftEnemyRev = piece.king ? canHitLeft(position, !currentPlayer) : null;
-				var rightEnemyRev = piece.king ? canHitRight(position, !currentPlayer): null;
+				var leftEnemy = canHitLeft(position, myPlayer);
+				var rightEnemy = canHitRight(position, myPlayer);
+				var leftEnemyRev = piece.king ? canHitLeft(position, !myPlayer) : null;
+				var rightEnemyRev = piece.king ? canHitRight(position, !myPlayer): null;
 
 				if (leftEnemy != null || rightEnemy != null || leftEnemyRev != null || rightEnemyRev != null) {
 					return true;
@@ -142,10 +143,10 @@ function Checkers() {
 
 	function availableHits(position, isKing, prevEnemy) {
 		var listOfPaths = [];
-		var leftEnemy = canHitLeft(position, currentPlayer);
-		var rightEnemy = canHitRight(position, currentPlayer);
-		var leftEnemyRev = isKing ? canHitLeft(position, !currentPlayer) : null;
-		var rightEnemyRev = isKing ? canHitRight(position, !currentPlayer): null;
+		var leftEnemy = canHitLeft(position, myPlayer);
+		var rightEnemy = canHitRight(position, myPlayer);
+		var leftEnemyRev = isKing ? canHitLeft(position, !myPlayer) : null;
+		var rightEnemyRev = isKing ? canHitRight(position, !myPlayer): null;
 		var enemyList = [leftEnemy, rightEnemy, leftEnemyRev, rightEnemyRev];
 
 
@@ -176,7 +177,7 @@ function Checkers() {
 
 	function availableMoves(piece) {
 		var moves = [];
-		if (currentTurn == currentPlayer){
+		if (currentTurn == myPlayer){
 			
 			if (hit) {
 
@@ -194,23 +195,23 @@ function Checkers() {
 
 
 			
-			var left = findLeft(piece, currentPlayer);
+			var left = findLeft(piece, myPlayer);
 			if (left != null && left[1] == null) {
 				moves.push(left[0]);
 			}
 		
-			var right = findRight(piece, currentPlayer);
+			var right = findRight(piece, myPlayer);
 			if (right != null && right[1] == null) {
 				moves.push(right[0]);
 			}
 
 			if (piece.king == 1){
-				var leftRev = findLeft(piece, !currentPlayer);
+				var leftRev = findLeft(piece, !myPlayer);
 				if (leftRev != null && leftRev[1] == null) {
 					moves.push(leftRev[0]);
 				}
 			
-				var rightRev = findRight(piece, !currentPlayer);
+				var rightRev = findRight(piece, !myPlayer);
 				if (rightRev != null && rightRev[1] == null) {
 					moves.push(rightRev[0]);
 				}
@@ -248,8 +249,8 @@ function Checkers() {
 				square = new createjs.Shape();
 				(col + row) % 2 == 0 ? square.graphics.beginFill("grey").drawRect(0, 0, 50, 50) : 
 				square.graphics.beginFill("black").drawRect(0, 0, 50, 50);
-				square.x = 200 + col * 50;
-				square.y = 100 + row * 50;
+				square.x = col * 50;
+				square.y = row * 50;
 				square.boardX = col;
 				square.boardY = row;
 				squares.push(square);
@@ -291,13 +292,21 @@ function Checkers() {
 				}				
 
 				piece.on("pressmove", function(evt){
+
 					var piece = evt.currentTarget;
-					if (piece.player != currentPlayer) {
+
+
+					if ( (piece.player != myPlayer) || (piece.player != currentTurn) ){
 						return;
 					}
-					if (currentPlayer){
-						evt.stageX = 800 - evt.stageX;
-						evt.stageY = 600 - evt.stageY;
+
+					board.removeChild(piece);
+					board.addChild(piece);
+
+
+					if (myPlayer){
+						evt.stageX = 400 - evt.stageX;
+						evt.stageY = 400 - evt.stageY;
 					}
 					var position = {boardX: piece.boardX, boardY: piece.boardY};
 					piece.x = evt.stageX;
@@ -318,11 +327,11 @@ function Checkers() {
 
 				piece.on("pressup", function(evt) {
 					var piece = evt.currentTarget;
-					if (currentPlayer){
-						evt.stageX = 800 - evt.stageX;
-						evt.stageY = 600 - evt.stageY;
+					if (myPlayer){
+						evt.stageX = 400 - evt.stageX;
+						evt.stageY = 400 - evt.stageY;
 					}
-					if (piece.player != currentPlayer) {
+					if (piece.player != myPlayer) {
 						return;
 					}
 					var position = {boardX: piece.boardX, boardY: piece.boardY};				
@@ -352,7 +361,7 @@ function Checkers() {
 					}
 
 					else {
-						
+
 						var paths = availableHits(position, piece.king, null);
 						piece.x = closestSquare.x + 25;
 						piece.y = closestSquare.y + 25;
@@ -385,12 +394,19 @@ function Checkers() {
 								};
 								taken_enemies.push(enemy);
 								virtualBoard[selectedPath[i].boardY][selectedPath[i].boardX][1] = null;
+								if (myPlayer == 0){
+									numberOfPieces.player_1 -= 1;
+								}
+								else {
+									numberOfPieces.player_0 -= 1;
+								}
+
 							};
 
 						}
 
 						var king = false;
-						if (currentPlayer){
+						if (myPlayer){
 							if (closestSquare.boardY == 7){
 								piece.king = 1;
 								piece.graphics.beginFill("grey").drawPolyStar(0, 0, 20, 5, 0.6, -90);
@@ -405,13 +421,14 @@ function Checkers() {
 							}
 						}
 					
-
+						console.log(numberOfPieces);
 						socket.send({
 							gameId: gameId,
 							action: "MOVE",
 							move: move,
 							taken_enemies: taken_enemies,
-							king: king
+							king: king,
+							numberOfPieces: numberOfPieces
 						})
 						currentTurn = currentTurn ? 0 : 1;
 					}
@@ -440,12 +457,12 @@ function Checkers() {
 			if (msg["action"] == "START"){
 				initPieces(board);
 				
-				currentPlayer = msg["player"];
+				myPlayer = msg["player"];
 				currentTurn = 0;
 
-				if (currentPlayer){
-					board.regX = 800;
-					board.regY = 600;
+				if (myPlayer){
+					board.regX = 400;
+					board.regY = 400;
 					board.rotation = 180;
 
 				}
@@ -462,6 +479,7 @@ function Checkers() {
 				moved_piece = virtualBoard[initY][initX][1];
 				moved_piece.x = virtualBoard[finY][finX][0].x + 25;
 				moved_piece.y = virtualBoard[finY][finX][0].y + 25;
+
 				if (msg["king"] == true){
 					moved_piece.king = 1;
 					moved_piece.graphics.beginFill("grey").drawPolyStar(0, 0, 20, 5, 0.6, -90);
@@ -483,6 +501,51 @@ function Checkers() {
 				console.log("hit flag ", hit)
 				console.log("Following move has been done ", msg);
 
+				numberOfPieces = msg["numberOfPieces"];
+
+			}
+
+			else if (msg["action"] == "END"){
+				var blurryBox = new createjs.Shape();
+				blurryBox.graphics.beginFill("white").drawRect(0, 0, 400, 400);
+				blurryBox.alpha = 0.7;
+				board.addChild(blurryBox);
+				if (msg["reason"] == "GAMEOVER"){
+					var text = new createjs.Text("Game Over", "20px Arial", "#000000");
+					text.x = 150;
+					text.y = 200;
+					board.addChild(text);
+					if (myPlayer){
+						text.regX = 450;
+						text.regY = 0;
+						text.rotation = 180;
+					}
+				}
+				else if (msg["reason"] == "DISCONNECT"){
+					var text = new createjs.Text("Your opponent disconnected", "20px Arial", "#000000");
+					text.x = 75;
+					text.y = 200;
+					board.addChild(text);
+					if (myPlayer){
+						text.regX = 250;
+						text.regY = 0;
+						text.rotation = 180;
+					}
+
+				}	
+			}
+
+			else if (msg["action"] == "ERROR"){
+
+				var blurryBox = new createjs.Shape();
+				blurryBox.graphics.beginFill("white").drawRect(0, 0, 400, 400);
+				blurryBox.alpha = 0.7;
+				board.addChild(blurryBox);
+
+				var text = new createjs.Text(msg["reason"], "20px Arial", "#000000");
+				text.x = 25;
+				text.y = 200;
+				board.addChild(text);
 			}
 		});
 
@@ -499,6 +562,7 @@ function Checkers() {
 
 		board = new createjs.Container();
 		stage.addChild(board);
+
 
 		virtualBoard = initBoard(board);
 
@@ -531,12 +595,6 @@ function Checkers() {
 
 	init();
 
-
-		// 	if (currentPlayer){
-		// 	stage.regX = 800;
-		// 	stage.regY = 600;
-		// 	stage.rotation = 180;
-		// }
 
 
 

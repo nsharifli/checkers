@@ -32,17 +32,20 @@ var games = {};
 var socket = io.listen(httpServer);
 
 // Add a connect listener
-socket.on('connection', function(client){ 
+socket.on('connection', function(client){
+	client.gameId = null; 
 	
 	client.send("hey, client!");
 
 	// Success!  Now listen to messages to be received
 	client.on('message',function(msg){ 
-		console.log('Received message from client!',msg);
+		console.log('Received message from client!',msg, client.gameId);
 
 		if (msg.action == "CONNECT") {
 			var gameId = msg.gameId;
+			
 			if (games[gameId] && !games[gameId]["isStarted"]){
+				client.gameId = gameId;
 				games[gameId]["player_1"] = client;
 				games[gameId]["isStarted"] = true;
 				games[gameId]["player_0"].send({
@@ -56,17 +59,27 @@ socket.on('connection', function(client){
 					turn: 0
 				})
 			}
-			else {
+			else if (!games[gameId]) {
+				client.gameId = gameId;
 				games[gameId] = {
 					turn: 0,
 					player_0: client,
 					isStarted: false
 				};
 			}
+
+			else {
+				client.send({
+					action: "ERROR",
+					reason: "Game exists, choose different game ID"
+				});
+			}
 		}
 
 		else if (msg.action == "MOVE") {
 			var gameId = msg.gameId;
+
+
 			if (games[gameId]["turn"] == 0){
 				games[gameId]["player_1"].send(msg);
 				games[gameId]["turn"] = 1;
@@ -76,12 +89,62 @@ socket.on('connection', function(client){
 				games[gameId]["player_0"].send(msg);
 				games[gameId]["turn"] = 0;
 			}
+
+			if ( msg["numberOfPieces"]["player_0"] == 0 || msg["numberOfPieces"]["player_1"] == 0) {
+				games[gameId]["player_1"].send({
+					action: "END",
+					reason: "GAMEOVER"
+				});
+
+				games[gameId]["player_0"].send({
+					action: "END",
+					reason: "GAMEOVER"
+				});
+				games[gameId]["player_1"].disconnect();
+				games[gameId]["player_0"].disconnect();
+
+
+				delete games[client.gameId];
+
+
+			}
 		}
 	});
 
 
 	client.on('disconnect',function(){
-		console.log('Server has disconnected');
+		console.log('Server has disconnected', client.gameId);
+		var myGame = games[client.gameId];
+
+		if (myGame == null){
+			return;
+		}
+
+		delete games[client.gameId];
+
+		if (myGame["player_0"]){
+			myGame["player_0"].send({
+				action: "END",
+				reason: "DISCONNECT"
+			});
+			myGame["player_0"].disconnect();
+		}
+		console.log(games[client.gameId]);
+
+		if (myGame["player_1"]){
+			myGame["player_1"].send({
+				action: "END",
+				reason: "DISCONNECT"
+			});
+			myGame["player_1"].disconnect();
+		}
+		
+		
+
+		
+		
+
+		
 	});
 
 });
