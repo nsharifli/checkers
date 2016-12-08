@@ -18,9 +18,9 @@ app.get('/game/:id', function (req, res) {
 })
 
 
-// Starts express server listening on 3000
-var httpServer = app.listen(3000, "0.0.0.0", function () {
-	console.log('Example app listening on port 3000!')
+// Starts express server listening on 19456
+var httpServer = app.listen(19456, "0.0.0.0", function () {
+	console.log('Example app listening on port 19456!')
 })
 
 var games = {};
