@@ -563,7 +563,7 @@ function Checkers() {
 
 
 	function init() {
-		var stage = new createjs.Stage("demoCanvas");
+		var stage = new createjs.Stage("gameCanvas");
 
 		board = new createjs.Container();
 		stage.addChild(board);
@@ -599,10 +599,6 @@ function Checkers() {
 
 
 	init();
-
-
-
-
-
-
 }
+
+

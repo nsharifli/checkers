@@ -1,0 +1,82 @@
+<html>
+	<head>
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/semantic-ui/2.2.6/semantic.min.css">
+		<script src="https://cdn.jsdelivr.net/semantic-ui/2.2.6/semantic.min.js"></script>
+		<link rel="stylesheet" href="/style/checkers.css">
+		<script>
+			function onload(){
+				var buttonNewGame = document.getElementById("newGame");
+				var buttonJoinGame = document.getElementById("joinGame");
+				var inputGameId = document.getElementById("gameId");
+				buttonNewGame.addEventListener("click", function() {
+					var id = inputGameId.value.trim();
+					if (id.length != 0){
+						window.location = "/game/" + id;
+					}					
+				});
+
+				buttonJoinGame.addEventListener("click", function() {
+					var id = inputGameId.value.trim();
+					if (id.length != 0){
+						window.location = "/game/" + id;
+					}
+					
+				});
+
+
+			}
+		</script>
+	</head>
+
+	<body onload="onload();">
+
+		<div class="column ui labeled icon menu">
+			<a class="item">
+	    		<i class="home icon"></i> Home
+	    	</a>
+			<a class="item">
+	    		<i class="help circle icon"></i>How To Play
+	    	</a>
+	    	<a class="item">
+	    		<i class="theme icon"></i>Theme
+	    	</a>
+	    	<a class="item">
+	    		<i class="info circle icon"></i>About
+	    	</a>
+		</div>
+
+		<div class = "container">
+
+			<div class="ui centered one column grid">
+				<div class="row">
+					<div class = "column">
+						<h1 align = "center">Welcome to Online Multiplayer Checkers Website! </h1>
+					</div>
+				</div>
+
+				<div class = "three column centered row">
+				    <div class="column">
+				    	<div class="ui fluid input">
+  							<input id="gameId" type="text" placeholder="Enter new game ID">
+  						</div>
+				    </div>
+				</div>
+
+				<div class = "three column centered row">
+					<div class = "column">
+					  	<div class="ui fluid buttons">
+						  <button id="newGame" class="ui button">New Game</button>
+						  <div class="or"></div>
+						  <button id="joinGame" class="ui positive button">Join Game</button>
+						</div>
+					</div>
+				</div>
+
+			
+
+			
+
+		</div>
+	</body>
+
+</html>

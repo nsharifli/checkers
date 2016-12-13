@@ -4,18 +4,20 @@ var io = require('socket.io');
 
 var app = express()
 
-app.use(express.static('public'))
+app.use(express.static('public'));
 
 //Routes
 
-app.get('/game', function (req, res) {
-  	res.sendfile('public/index.html');
+app.get('/', function (req, res) {
+	console.log(req.params);
+	res.sendfile('views/index.html');
 })
-
 app.get('/game/:id', function (req, res) {
 	console.log(req.params);
-	res.sendfile('public/index.html');
+	res.sendfile('views/game.html');
 })
+
+
 
 
 // Starts express server listening on 19456
