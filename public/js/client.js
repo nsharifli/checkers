@@ -262,183 +262,234 @@ function Checkers() {
 		return virtualBoard;
 	}
 
-
-	function initPieces(board) {
-		var piece;
-		var initial_positions = [0, 1, 2, 5, 6, 7];
-
-		for (row_index = 0; row_index < 6; row_index++) {
-			for (col = 0; col < 8; col++){
-				var row = initial_positions[row_index];
-				piece = new createjs.Shape();
-				piece.x = virtualBoard[row][col][0].x + 25;
-				piece.y = virtualBoard[row][col][0].y + 25;
-				piece.boardX = col;
-				piece.boardY = row;
-				piece.king = 0;
-				
-				if ( ([0, 1, 2].indexOf(row) != -1) && ((row + col) % 2 == 1)) {					
-					piece.graphics.beginFill("red").drawCircle(0,0,20);
-					piece.player = 1;
-					board.addChild(piece);
-					virtualBoard[row][col][1] = piece;
-				}
-
-				else if ( ([5, 6, 7].indexOf(row) != -1) && ((row + col) % 2 == 1)){
-					piece.graphics.beginFill("white").drawCircle(0,0,20);
-					piece.player = 0;
-					board.addChild(piece);
-					virtualBoard[row][col][1] = piece;
-				}				
-
-				piece.on("pressmove", function(evt){
-
-					var piece = evt.currentTarget;
+	function drawPieces(boardFromServer) {
+		boardFromServer.forEach(function(row, rowIndex){
 
 
-					if ( (piece.player != myPlayer) || (piece.player != currentTurn) ){
-						return;
+			row.forEach(function(col, colIndex){
+				if (col != -1){
+					var piece = new createjs.Shape();
+					piece.x = virtualBoard[rowIndex][colIndex][0].x + 25;
+					piece.y = virtualBoard[rowIndex][colIndex][0].y + 25;
+					piece.boardX = colIndex;
+					piece.boardY = rowIndex;
+
+					if (col == 0){
+						piece.graphics.beginFill("white").drawCircle(0, 0, 20);
+						piece.player = 0;
+						piece.king = 0;
+						board.addChild(piece);
+						virtualBoard[rowIndex][colIndex][1] = piece;
 					}
 
-					board.removeChild(piece);
-					board.addChild(piece);
-
-
-					if (myPlayer){
-						evt.stageX = 400 - evt.stageX;
-						evt.stageY = 400 - evt.stageY;
+					else if (col == 1){
+						piece.graphics.beginFill("red").drawCircle(0, 0, 20);
+						piece.player = 1;
+						piece.king = 0;
+						board.addChild(piece);
+						virtualBoard[rowIndex][colIndex][1] = piece;
 					}
-					var position = {boardX: piece.boardX, boardY: piece.boardY};
-					piece.x = evt.stageX;
-					piece.y = evt.stageY;
-					var moves = availableMoves(piece);
-					var paths = availableHits(position, piece.king);
-					paths.forEach(function(path){
-						for (i = 0; i < path.length; i++){
-							virtualBoard[path[i].boardY][path[i].boardX][0].alpha = 0.8;
+
+					else if (col == 2){
+						piece.graphics.beginFill("white").drawCircle(0, 0, 20);
+						piece.player = 0;
+						piece.king = 1;
+						board.addChild(piece);
+						virtualBoard[rowIndex][colIndex][1] = piece;
+					}
+
+					else if (col == 3){
+						piece.graphics.beginFill("red").drawCircle(0, 0, 20);
+						piece.player = 1;
+						piece.king = 1;
+						board.addChild(piece);
+						virtualBoard[rowIndex][colIndex][1] = piece;
+					}
+
+					piece.on("pressmove", function(evt){
+
+						var piece = evt.currentTarget;
+
+
+						if ( (piece.player != myPlayer) || (piece.player != currentTurn) ){
+							return;
 						}
-					});
 
-					moves.forEach(function(square){
-						square.alpha = 0.7;
-						square.graphics.beginStroke("red").drawRect(1, 1, 48, 48) ;
-					});
-				})
+						board.removeChild(piece);
+						board.addChild(piece);
 
-				piece.on("pressup", function(evt) {
-					var piece = evt.currentTarget;
-					if (myPlayer){
-						evt.stageX = 400 - evt.stageX;
-						evt.stageY = 400 - evt.stageY;
-					}
-					if (piece.player != myPlayer) {
-						return;
-					}
-					var position = {boardX: piece.boardX, boardY: piece.boardY};				
-					var moves = availableMoves(piece, virtualBoard);
-					var initial_square = virtualBoard[piece.boardY][piece.boardX];
-					var paths = availableHits(position, piece.king);
-					paths.forEach(function(path){
-						for (i = 0; i < path.length; i++){
-							virtualBoard[path[i].boardY][path[i].boardX][0].alpha = 1;
+
+						if (myPlayer){
+							evt.stageX = 400 - evt.stageX;
+							evt.stageY = 400 - evt.stageY;
 						}
-					});
+						var position = {boardX: piece.boardX, boardY: piece.boardY};
+						piece.x = evt.stageX;
+						piece.y = evt.stageY;
+						var moves = availableMoves(piece);
+						var paths = availableHits(position, piece.king);
+						paths.forEach(function(path){
+							for (i = 0; i < path.length; i++){
+								virtualBoard[path[i].boardY][path[i].boardX][0].alpha = 0.8;
+							}
+						});
 
-					moves.forEach(function(square){
-						square.alpha = 1;
-						square.graphics.clear()
-						square.graphics.beginFill("black").drawRect(0, 0, 50, 50) ;
+						moves.forEach(function(square){
+							square.alpha = 0.7;
+							square.graphics.beginStroke("red").drawRect(1, 1, 48, 48) ;
+						});
 					})
 
-					var closestSquare = moves.find(function(square){
-						return ((square.x < evt.stageX) && (evt.stageX < square.x + 50)) && 
-						((square.y < evt.stageY) && (evt.stageY < square.y + 50));
+					piece.on("pressup", function(evt) {
+						var piece = evt.currentTarget;
+						if (myPlayer){
+							evt.stageX = 400 - evt.stageX;
+							evt.stageY = 400 - evt.stageY;
+						}
+						if (piece.player != myPlayer) {
+							return;
+						}
+						var position = {boardX: piece.boardX, boardY: piece.boardY};				
+						var moves = availableMoves(piece, virtualBoard);
+						var initial_square = virtualBoard[piece.boardY][piece.boardX];
+						var paths = availableHits(position, piece.king);
+						paths.forEach(function(path){
+							for (i = 0; i < path.length; i++){
+								virtualBoard[path[i].boardY][path[i].boardX][0].alpha = 1;
+							}
+						});
+
+						moves.forEach(function(square){
+							square.alpha = 1;
+							square.graphics.clear()
+							square.graphics.beginFill("black").drawRect(0, 0, 50, 50) ;
 						})
 
-					if (closestSquare == null){
-						piece.x = initial_square[0].x + 25;
-						piece.y = initial_square[0].y + 25;	
-					}
+						var closestSquare = moves.find(function(square){
+							return ((square.x < evt.stageX) && (evt.stageX < square.x + 50)) && 
+							((square.y < evt.stageY) && (evt.stageY < square.y + 50));
+							})
 
-					else {
+						if (closestSquare == null){
+							piece.x = initial_square[0].x + 25;
+							piece.y = initial_square[0].y + 25;	
+						}
 
-						var paths = availableHits(position, piece.king, null);
-						piece.x = closestSquare.x + 25;
-						piece.y = closestSquare.y + 25;
-						virtualBoard[piece.boardY][piece.boardX][1] = null;
-						var move = {
-							initialX: piece.boardX,
-							initialY: piece.boardY,
-							finalX: closestSquare.boardX,
-							finalY: closestSquare.boardY
-						};
+						else {
 
-						piece.boardX = closestSquare.boardX;
-						piece.boardY = closestSquare.boardY;
-						virtualBoard[closestSquare.boardY][closestSquare.boardX][1] = piece;
-						
-						var taken_enemies = [];						
-						if (paths.length != 0) {
-							var selectedPath = paths.find(function(path){
-								var destination = path[path.length - 1];
-								return (destination.boardX == closestSquare.boardX) &&
-								(destination.boardY == closestSquare.boardY);
-							});
-
-							for (i = 0 ; i < selectedPath.length; i += 2){
-								taken_enemy = virtualBoard[selectedPath[i].boardY][selectedPath[i].boardX][1]
-								board.removeChild(taken_enemy);
-								enemy = {
-									boardX: taken_enemy.boardX,
-									boardY: taken_enemy.boardY
-								};
-								taken_enemies.push(enemy);
-								virtualBoard[selectedPath[i].boardY][selectedPath[i].boardX][1] = null;
-								if (myPlayer == 0){
-									numberOfPieces.player_1 -= 1;
-								}
-								else {
-									numberOfPieces.player_0 -= 1;
-								}
-
+							var paths = availableHits(position, piece.king, null);
+							piece.x = closestSquare.x + 25;
+							piece.y = closestSquare.y + 25;
+							virtualBoard[piece.boardY][piece.boardX][1] = null;
+							var move = {
+								initialX: piece.boardX,
+								initialY: piece.boardY,
+								finalX: closestSquare.boardX,
+								finalY: closestSquare.boardY
 							};
 
-						}
+							piece.boardX = closestSquare.boardX;
+							piece.boardY = closestSquare.boardY;
+							virtualBoard[closestSquare.boardY][closestSquare.boardX][1] = piece;
+							
+							var taken_enemies = [];						
+							if (paths.length != 0) {
+								var selectedPath = paths.find(function(path){
+									var destination = path[path.length - 1];
+									return (destination.boardX == closestSquare.boardX) &&
+									(destination.boardY == closestSquare.boardY);
+								});
 
-						var king = false;
-						if (myPlayer){
-							if (closestSquare.boardY == 7){
-								piece.king = 1;
-								piece.graphics.beginFill("grey").drawPolyStar(0, 0, 20, 5, 0.6, -90);
-								king = true;
+								for (i = 0 ; i < selectedPath.length; i += 2){
+									taken_enemy = virtualBoard[selectedPath[i].boardY][selectedPath[i].boardX][1]
+									board.removeChild(taken_enemy);
+									enemy = {
+										boardX: taken_enemy.boardX,
+										boardY: taken_enemy.boardY
+									};
+									taken_enemies.push(enemy);
+									virtualBoard[selectedPath[i].boardY][selectedPath[i].boardX][1] = null;
+									if (myPlayer == 0){
+										numberOfPieces.player_1 -= 1;
+									}
+									else {
+										numberOfPieces.player_0 -= 1;
+									}
+
+								};
+
 							}
-						}
-						else {
-							if (closestSquare.boardY == 0) {
-								piece.king = 1;
-								piece.graphics.beginFill("grey").drawPolyStar(0, 0, 20, 5, 0.6, -90);
-								king = true;
+
+							var king = false;
+							if (myPlayer){
+								if (closestSquare.boardY == 7){
+									piece.king = 1;
+									piece.graphics.beginFill("grey").drawPolyStar(0, 0, 20, 5, 0.6, -90);
+									king = true;
+								}
 							}
+							else {
+								if (closestSquare.boardY == 0) {
+									piece.king = 1;
+									piece.graphics.beginFill("grey").drawPolyStar(0, 0, 20, 5, 0.6, -90);
+									king = true;
+								}
+							}
+							//Transforming virtual board to send to server
+							var boardToServer = [];
+							virtualBoard.forEach(function(row){
+								var newRow = [];
+								row.forEach(function(square){
+									if (square[1] == null){
+										newRow.push(-1);
+									}
+									else {
+										if (square[1].king == 1){
+											newRow.push(square[1].player + 2);
+										}
+										else {
+											newRow.push(square[1].player);
+										}
+									}
+
+								})
+								boardToServer.push(newRow);
+							})
+
+							console.log(numberOfPieces);
+							socket.send({
+								gameId: gameId,
+								action: "MOVE",
+								move: move,
+								taken_enemies: taken_enemies,
+								king: king,
+								numberOfPieces: numberOfPieces,
+								board: boardToServer
+							})
+							currentTurn = currentTurn ? 0 : 1;
 						}
-					
-						console.log(numberOfPieces);
-						socket.send({
-							gameId: gameId,
-							action: "MOVE",
-							move: move,
-							taken_enemies: taken_enemies,
-							king: king,
-							numberOfPieces: numberOfPieces
-						})
-						currentTurn = currentTurn ? 0 : 1;
-					}
-					
-					hit = anyHit(virtualBoard);
-				})				
-			}
-		}		
-		console.log("hit flag ", hit);
+						
+						hit = anyHit(virtualBoard);
+					})	
+				}
+			})
+		})
 	}
+
+
+	cookieList = document.cookie.split(/\;\s/g);
+	var cookieDictionary = {};
+	cookieList.forEach(function(cookie){
+	  cookieKeyValue = cookie.split("=");
+	  if (cookieKeyValue.length == 2){
+	    cookieDictionary[cookieKeyValue[0]] = cookieKeyValue[1];
+	  }
+	  else {
+	    cookieDictionary[cookieKeyValue[0]] = null;
+	  }
+	});
+
+
 
 
 	function initSocket() {
@@ -448,18 +499,48 @@ function Checkers() {
 			console.log('Client has connected to the server!');
 			socket.send({
 				action: "CONNECT",
-				gameId: gameId
+				gameId: gameId,
+				userIdCookie: cookieDictionary["userIdCookie"]
 			});
 		});
 
+
+
 		socket.on('message',function(msg) {
 			console.log('Received a message from the server!',msg);
-			if (msg["action"] == "START"){
-				initPieces(board);
+			if (msg["action"] == "WAIT"){
+				drawPieces(msg["board"]);
+				currentTurn = -1;
+			}
+			
+
+
+			else if (msg["action"] == "START"){
+
+				
 				
 				myPlayer = msg["player"];
+				if (myPlayer == 1){
+					drawPieces(msg["board"]);
+				}
 				currentTurn = 0;
 
+				if (myPlayer){
+					board.regX = 400;
+					board.regY = 400;
+					board.rotation = 180;
+
+				}
+			}
+
+			else if (msg["action"] == "RECONNECT"){
+				console.log("reconnecting");
+				console.log(msg["turn"]);
+				myPlayer = msg["player"];
+				drawPieces(msg["board"]);
+				currentTurn = msg["turn"];
+				hit = anyHit(virtualBoard);
+				console.log(msg["player"]);
 				if (myPlayer){
 					board.regX = 400;
 					board.regY = 400;
@@ -576,7 +657,7 @@ function Checkers() {
 
 		gameId = "";
 		var pathnames = window.location.pathname.split("/");
-		if (pathnames.length == 3){
+		if (pathnames.length >= 3){
 			gameId = pathnames[2];		
 		}
 		if (gameId == "") {

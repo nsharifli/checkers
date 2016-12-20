@@ -11,14 +11,14 @@
 				buttonNewGame.addEventListener("click", function() {
 					var id = inputGameId.value.trim();
 					if (id.length != 0){
-						window.location = "/game/" + id;
+						window.location = "/game/" + id + "/new";
 					}					
 				});
 
 				buttonJoinGame.addEventListener("click", function() {
 					var id = inputGameId.value.trim();
 					if (id.length != 0){
-						window.location = "/game/" + id;
+						window.location = "/game/" + id + "/join";
 					}
 					
 				});

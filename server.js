@@ -6,15 +6,42 @@ var app = express()
 
 app.use(express.static('public'));
 
+var cookieParser = require('cookie-parser');
+app.use(cookieParser());
+
+var uuid = require('node-uuid');
+
+
+
+
+
 //Routes
 
 app.get('/', function (req, res) {
 	console.log(req.params);
 	res.sendfile('views/index.html');
 })
-app.get('/game/:id', function (req, res) {
+
+app.get('/game/:id/new', function (req, res) {
 	console.log(req.params);
+	console.log(req.cookies);
+	if (!req.cookies.userIdCookie){
+		var idCookie = uuid.v4();
+		res.cookie('userIdCookie', idCookie, { maxAge: 900000, httpOnly: false });
+	}	
 	res.sendfile('views/game.html');
+	
+})
+
+app.get('/game/:id/join', function (req, res) {
+	console.log(req.params);
+	console.log(req.cookies.userIdCookie);
+	if (!req.cookies.userIdCookie){
+		var idCookie = uuid.v4();
+		res.cookie('userIdCookie', idCookie, { maxAge: 900000, httpOnly: false });
+	}	
+	res.sendfile('views/game.html');
+	
 })
 
 
@@ -36,46 +63,96 @@ var socket = io.listen(httpServer);
 // Add a connect listener
 socket.on('connection', function(client){
 	client.gameId = null; 
-	
+
 	client.send("hey, client!");
 
 	// Success!  Now listen to messages to be received
 	client.on('message',function(msg){ 
-		console.log('Received message from client!',msg, client.gameId);
+		console.log('Received message from client!',msg, client.gameId, client.connected);
 
 		if (msg.action == "CONNECT") {
 			var gameId = msg.gameId;
+
+			client.userIdCookie = msg.userIdCookie;
 			
-			if (games[gameId] && !games[gameId]["isStarted"]){
-				client.gameId = gameId;
-				games[gameId]["player_1"] = client;
-				games[gameId]["isStarted"] = true;
-				games[gameId]["player_0"].send({
-					player: 0,
-					action: "START",
-					turn: 0
-				})
-				games[gameId]["player_1"].send({
-					player: 1,
-					action: "START",
-					turn: 0
-				})
+			if (games[gameId]){
+				if (games[gameId]["player_0"] && games[gameId]["player_0"].userIdCookie == client.userIdCookie
+					&& !games[gameId]["player_0"].connected){
+					client.gameId = gameId;
+					console.log("player_0 reconnects");
+					console.log(games[gameId]["board"]);
+					games[gameId]["player_0"] = client;
+					games[gameId]["player_0"].send({
+						action: "RECONNECT",
+						player: 0, 
+						board: games[gameId]["board"],
+						turn: games[gameId]["turn"]
+					})
+				}
+
+				else if (games[gameId]["player_1"] && games[gameId]["player_1"].userIdCookie == client.userIdCookie
+					&& !games[gameId]["player_1"].connected){
+					client.gameId = gameId;
+					games[gameId]["player_1"] = client;
+					games[gameId]["player_1"].send({
+						action: "RECONNECT",
+						player: 1,
+						board: games[gameId]["board"],
+						turn: games[gameId]["turn"]
+					})
+				}
+
+				else if (!games[gameId]["isStarted"] && games[gameId]["player_0"].userIdCookie != client.userIdCookie){
+					client.gameId = gameId;
+					games[gameId]["player_1"] = client;
+					games[gameId]["isStarted"] = true;
+					games[gameId]["player_0"].send({
+						player: 0,
+						action: "START",
+						turn: 0,
+						board: games[gameId]["board"]
+
+					})
+					games[gameId]["player_1"].send({
+						player: 1,
+						action: "START",
+						turn: 0,
+						board: games[gameId]["board"]
+					})
+				}
+
+
+				else {
+					client.send({
+						action: "ERROR",
+						reason: "Game exists, choose different game ID"
+					});
+				}
 			}
-			else if (!games[gameId]) {
+
+			else {
+				var board = [
+				[-1, 1, -1, 1, -1, 1, -1, 1],
+				[1, -1, 1, -1, 1, -1, 1, -1],
+				[-1, 1, -1, 1, -1, 1, -1, 1],
+				[-1, -1, -1, -1, -1, -1, -1, -1],
+				[-1, -1, -1, -1, -1, -1, -1, -1],
+				[0, -1, 0, -1, 0, -1, 0, -1],
+				[-1, 0, -1, 0, -1, 0, -1, 0],
+				[0, -1, 0, -1, 0, -1, 0, -1]
+				];
 				client.gameId = gameId;
 				games[gameId] = {
 					turn: 0,
 					player_0: client,
-					isStarted: false
+					isStarted: false, 
+					board: board
 				};
-			}
-
-			else {
-				client.send({
-					action: "ERROR",
-					reason: "Game exists, choose different game ID"
-				});
-			}
+				games[gameId]["player_0"].send({
+					action: "WAIT",
+					board: games[gameId]["board"]
+				})
+			}		
 		}
 
 		else if (msg.action == "MOVE") {
@@ -85,11 +162,13 @@ socket.on('connection', function(client){
 			if (games[gameId]["turn"] == 0){
 				games[gameId]["player_1"].send(msg);
 				games[gameId]["turn"] = 1;
+				games[gameId]["board"] = msg.board;
 			}
 
 			else {
 				games[gameId]["player_0"].send(msg);
 				games[gameId]["turn"] = 0;
+				games[gameId]["board"] = msg.board;
 			}
 
 			if (msg["numberOfPieces"]["player_0"] == 0 || msg["numberOfPieces"]["player_1"] == 0) {
@@ -124,24 +203,22 @@ socket.on('connection', function(client){
 			return;
 		}
 
-		delete games[client.gameId];
+		// if (myGame["player_0"]){
+		// 	myGame["player_0"].send({
+		// 		action: "END",
+		// 		reason: "DISCONNECT"
+		// 	});
+		// 	myGame["player_0"].disconnect();
+		// }
+		// console.log(games[client.gameId]);
 
-		if (myGame["player_0"]){
-			myGame["player_0"].send({
-				action: "END",
-				reason: "DISCONNECT"
-			});
-			myGame["player_0"].disconnect();
-		}
-		console.log(games[client.gameId]);
-
-		if (myGame["player_1"]){
-			myGame["player_1"].send({
-				action: "END",
-				reason: "DISCONNECT"
-			});
-			myGame["player_1"].disconnect();
-		}
+		// if (myGame["player_1"]){
+		// 	myGame["player_1"].send({
+		// 		action: "END",
+		// 		reason: "DISCONNECT"
+		// 	});
+		// 	myGame["player_1"].disconnect();
+		// }
 		
 		
 
