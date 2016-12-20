@@ -86,7 +86,8 @@ socket.on('connection', function(client){
 						action: "RECONNECT",
 						player: 0, 
 						board: games[gameId]["board"],
-						turn: games[gameId]["turn"]
+						turn: games[gameId]["turn"],
+						isStarted: games[gameId]["isStarted"]
 					})
 				}
 
@@ -98,7 +99,8 @@ socket.on('connection', function(client){
 						action: "RECONNECT",
 						player: 1,
 						board: games[gameId]["board"],
-						turn: games[gameId]["turn"]
+						turn: games[gameId]["turn"],
+						isStarted: games[gameId]["isStarted"]
 					})
 				}
 

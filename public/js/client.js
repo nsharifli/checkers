@@ -264,8 +264,6 @@ function Checkers() {
 
 	function drawPieces(boardFromServer) {
 		boardFromServer.forEach(function(row, rowIndex){
-
-
 			row.forEach(function(col, colIndex){
 				if (col != -1){
 					var piece = new createjs.Shape();
@@ -476,21 +474,20 @@ function Checkers() {
 		})
 	}
 
-
-	cookieList = document.cookie.split(/\;\s/g);
-	var cookieDictionary = {};
-	cookieList.forEach(function(cookie){
-	  cookieKeyValue = cookie.split("=");
-	  if (cookieKeyValue.length == 2){
-	    cookieDictionary[cookieKeyValue[0]] = cookieKeyValue[1];
-	  }
-	  else {
-	    cookieDictionary[cookieKeyValue[0]] = null;
-	  }
-	});
-
-
-
+	function cookieParser(){
+		var cookieList = document.cookie.split(/\;\s/g);
+		var cookieDictionary = {};
+		cookieList.forEach(function(cookie){
+		  cookieKeyValue = cookie.split("=");
+		  if (cookieKeyValue.length == 2){
+		    cookieDictionary[cookieKeyValue[0]] = cookieKeyValue[1];
+		  }
+		  else {
+		    cookieDictionary[cookieKeyValue[0]] = null;
+		  }
+		});
+		return cookieDictionary;
+	}
 
 	function initSocket() {
 		var socket = new io({reconnection: false});
@@ -500,7 +497,7 @@ function Checkers() {
 			socket.send({
 				action: "CONNECT",
 				gameId: gameId,
-				userIdCookie: cookieDictionary["userIdCookie"]
+				userIdCookie: cookieParser()["userIdCookie"]
 			});
 		});
 
@@ -511,14 +508,17 @@ function Checkers() {
 			if (msg["action"] == "WAIT"){
 				drawPieces(msg["board"]);
 				currentTurn = -1;
+				// var blurryBox = new createjs.Shape();
+				// blurryBox.graphics.beginFill("white").drawRect(0, 0, 400, 400);
+				// blurryBox.alpha = 0.7;
+				// board.addChild(blurryBox);
+				// var text = new createjs.Text("Wait for second player", "20px Arial", "#000000");
+				// text.x = 100;
+				// text.y = 200;
+				// board.addChild(text);
 			}
 			
-
-
-			else if (msg["action"] == "START"){
-
-				
-				
+			else if (msg["action"] == "START"){			
 				myPlayer = msg["player"];
 				if (myPlayer == 1){
 					drawPieces(msg["board"]);
@@ -529,19 +529,26 @@ function Checkers() {
 					board.regX = 400;
 					board.regY = 400;
 					board.rotation = 180;
-
 				}
 			}
 
 			else if (msg["action"] == "RECONNECT"){
-				console.log("reconnecting");
-				console.log(msg["turn"]);
 				myPlayer = msg["player"];
 				drawPieces(msg["board"]);
 				currentTurn = msg["turn"];
+				if (!msg["isStarted"]){
+					currentTurn = -1;
+					// var blurryBox = new createjs.Shape();
+					// blurryBox.graphics.beginFill("white").drawRect(0, 0, 400, 400);
+					// blurryBox.alpha = 0.7;
+					// board.addChild(blurryBox);
+					// var text = new createjs.Text("Wait for second player", "20px Arial", "#000000");
+					// text.x = 100;
+					// text.y = 200;
+					// board.addChild(text);
+				};
 				hit = anyHit(virtualBoard);
-				console.log(msg["player"]);
-				if (myPlayer){
+				if (myPlayer == 1){
 					board.regX = 400;
 					board.regY = 400;
 					board.rotation = 180;
