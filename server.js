@@ -22,20 +22,9 @@ app.get('/', function (req, res) {
 	res.sendfile('views/index.html');
 })
 
-app.get('/game/:id/new', function (req, res) {
+app.get('/game/:id', function (req, res) {
 	console.log(req.params);
 	console.log(req.cookies);
-	if (!req.cookies.userIdCookie){
-		var idCookie = uuid.v4();
-		res.cookie('userIdCookie', idCookie, { maxAge: 900000, httpOnly: false });
-	}	
-	res.sendfile('views/game.html');
-	
-})
-
-app.get('/game/:id/join', function (req, res) {
-	console.log(req.params);
-	console.log(req.cookies.userIdCookie);
 	if (!req.cookies.userIdCookie){
 		var idCookie = uuid.v4();
 		res.cookie('userIdCookie', idCookie, { maxAge: 900000, httpOnly: false });
@@ -82,26 +71,52 @@ socket.on('connection', function(client){
 					console.log("player_0 reconnects");
 					console.log(games[gameId]["board"]);
 					games[gameId]["player_0"] = client;
+					var opponent_exists = true;
+					if (!games[gameId]["player_1"].connected){
+						var opponent_exists = false;
+					}
 					games[gameId]["player_0"].send({
 						action: "RECONNECT",
 						player: 0, 
 						board: games[gameId]["board"],
 						turn: games[gameId]["turn"],
-						isStarted: games[gameId]["isStarted"]
+						isStarted: games[gameId]["isStarted"],
+						opponent_exists: opponent_exists
 					})
+					if (games[gameId]["isStarted"]) {
+							games[gameId]["player_1"].send({
+								action: "OPPONENT RECONNECT",
+								turn: games[gameId]["turn"]
+							})
+						}
 				}
 
 				else if (games[gameId]["player_1"] && games[gameId]["player_1"].userIdCookie == client.userIdCookie
 					&& !games[gameId]["player_1"].connected){
 					client.gameId = gameId;
 					games[gameId]["player_1"] = client;
+
+					var opponent_exists = true;
+					if (!games[gameId]["player_0"].connected){
+						var opponent_exists = false;
+					}
+
 					games[gameId]["player_1"].send({
 						action: "RECONNECT",
 						player: 1,
 						board: games[gameId]["board"],
 						turn: games[gameId]["turn"],
-						isStarted: games[gameId]["isStarted"]
+						isStarted: games[gameId]["isStarted"],
+						opponent_exists: opponent_exists
 					})
+
+
+
+					games[gameId]["player_0"].send({
+						action: "OPPONENT RECONNECT",
+						turn: games[gameId]["turn"]
+					})
+						
 				}
 
 				else if (!games[gameId]["isStarted"] && games[gameId]["player_0"].userIdCookie != client.userIdCookie){
@@ -205,22 +220,28 @@ socket.on('connection', function(client){
 			return;
 		}
 
-		// if (myGame["player_0"]){
-		// 	myGame["player_0"].send({
-		// 		action: "END",
-		// 		reason: "DISCONNECT"
-		// 	});
-		// 	myGame["player_0"].disconnect();
-		// }
-		// console.log(games[client.gameId]);
 
-		// if (myGame["player_1"]){
-		// 	myGame["player_1"].send({
-		// 		action: "END",
-		// 		reason: "DISCONNECT"
-		// 	});
-		// 	myGame["player_1"].disconnect();
-		// }
+		if (myGame["player_0"]){
+			myGame["player_0"].send({
+				action: "END",
+				reason: "DISCONNECT"
+			});
+			
+			
+		}
+		console.log(games[client.gameId]);
+
+		if (myGame["player_1"]){
+			console.log("player 0 disconnected");
+			myGame["player_1"].send({
+				action: "END",
+				reason: "DISCONNECT"
+			});
+
+			
+		}
+		console.log("disconnected");
+		
 		
 		
 

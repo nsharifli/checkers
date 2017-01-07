@@ -10,7 +10,8 @@ function Checkers() {
 	var gameId;
 	var board;
 	var virtualBoard;
-	var numberOfPieces = {player_0: 12, player_1: 12}
+	var numberOfPieces = {player_0: 12, player_1: 12};
+	var messageWindow;
 
 
 	function findLeft(position, direction) {
@@ -247,8 +248,8 @@ function Checkers() {
 		for (row = 0; row < 8; row++) {
 			for (col = 0; col < 8; col++) {
 				square = new createjs.Shape();
-				(col + row) % 2 == 0 ? square.graphics.beginFill("grey").drawRect(0, 0, 50, 50) : 
-				square.graphics.beginFill("black").drawRect(0, 0, 50, 50);
+				(col + row) % 2 == 0 ? square.graphics.beginFill("#9E9E9E").drawRect(0, 0, 50, 50) : 
+				square.graphics.beginFill("#212121").drawRect(0, 0, 50, 50);
 				square.x = col * 50;
 				square.y = row * 50;
 				square.boardX = col;
@@ -273,7 +274,7 @@ function Checkers() {
 					piece.boardY = rowIndex;
 
 					if (col == 0){
-						piece.graphics.beginFill("white").drawCircle(0, 0, 20);
+						piece.graphics.beginFill("#FAFAFA").drawCircle(0, 0, 20);
 						piece.player = 0;
 						piece.king = 0;
 						board.addChild(piece);
@@ -281,7 +282,7 @@ function Checkers() {
 					}
 
 					else if (col == 1){
-						piece.graphics.beginFill("red").drawCircle(0, 0, 20);
+						piece.graphics.beginFill("#E53935").drawCircle(0, 0, 20);
 						piece.player = 1;
 						piece.king = 0;
 						board.addChild(piece);
@@ -289,7 +290,7 @@ function Checkers() {
 					}
 
 					else if (col == 2){
-						piece.graphics.beginFill("white").drawCircle(0, 0, 20);
+						piece.graphics.beginFill("#FAFAFA").drawCircle(0, 0, 20);
 						piece.player = 0;
 						piece.king = 1;
 						board.addChild(piece);
@@ -297,7 +298,7 @@ function Checkers() {
 					}
 
 					else if (col == 3){
-						piece.graphics.beginFill("red").drawCircle(0, 0, 20);
+						piece.graphics.beginFill("#E53935").drawCircle(0, 0, 20);
 						piece.player = 1;
 						piece.king = 1;
 						board.addChild(piece);
@@ -334,7 +335,7 @@ function Checkers() {
 
 						moves.forEach(function(square){
 							square.alpha = 0.7;
-							square.graphics.beginStroke("red").drawRect(1, 1, 48, 48) ;
+							square.graphics.beginStroke("#EF5350").drawRect(1, 1, 48, 48) ;
 						});
 					})
 
@@ -360,7 +361,7 @@ function Checkers() {
 						moves.forEach(function(square){
 							square.alpha = 1;
 							square.graphics.clear()
-							square.graphics.beginFill("black").drawRect(0, 0, 50, 50) ;
+							square.graphics.beginFill("#212121").drawRect(0, 0, 50, 50) ;
 						})
 
 						var closestSquare = moves.find(function(square){
@@ -489,6 +490,24 @@ function Checkers() {
 		return cookieDictionary;
 	}
 
+	function addText(textToShow){
+		messageWindow = new createjs.Container();
+		var blurryBox = new createjs.Shape();
+		blurryBox.graphics.beginFill("white").drawRect(0, 0, 400, 400);
+		blurryBox.alpha = 0.7;
+		messageWindow.addChild(blurryBox);
+		var text = new createjs.Text(textToShow, "20px Arial", "#000000");
+		text.x = (400 - text.getMeasuredWidth())/2;
+		text.y = 190;
+		messageWindow.addChild(text);
+		if (myPlayer == 1){
+			messageWindow.regX = 400;
+			messageWindow.regY = 400;
+			messageWindow.rotation = 180;
+		}
+		board.addChild(messageWindow);
+	}
+
 	function initSocket() {
 		var socket = new io({reconnection: false});
 
@@ -508,14 +527,7 @@ function Checkers() {
 			if (msg["action"] == "WAIT"){
 				drawPieces(msg["board"]);
 				currentTurn = -1;
-				// var blurryBox = new createjs.Shape();
-				// blurryBox.graphics.beginFill("white").drawRect(0, 0, 400, 400);
-				// blurryBox.alpha = 0.7;
-				// board.addChild(blurryBox);
-				// var text = new createjs.Text("Wait for second player", "20px Arial", "#000000");
-				// text.x = 100;
-				// text.y = 200;
-				// board.addChild(text);
+				addText("Waiting for second player...")
 			}
 			
 			else if (msg["action"] == "START"){			
@@ -524,6 +536,9 @@ function Checkers() {
 					drawPieces(msg["board"]);
 				}
 				currentTurn = 0;
+				if (myPlayer == 0){
+					board.removeChild(messageWindow);
+				}
 
 				if (myPlayer){
 					board.regX = 400;
@@ -538,14 +553,7 @@ function Checkers() {
 				currentTurn = msg["turn"];
 				if (!msg["isStarted"]){
 					currentTurn = -1;
-					// var blurryBox = new createjs.Shape();
-					// blurryBox.graphics.beginFill("white").drawRect(0, 0, 400, 400);
-					// blurryBox.alpha = 0.7;
-					// board.addChild(blurryBox);
-					// var text = new createjs.Text("Wait for second player", "20px Arial", "#000000");
-					// text.x = 100;
-					// text.y = 200;
-					// board.addChild(text);
+					addText("Waiting for second player...")
 				};
 				hit = anyHit(virtualBoard);
 				if (myPlayer == 1){
@@ -554,6 +562,16 @@ function Checkers() {
 					board.rotation = 180;
 
 				}
+
+				if (!msg["opponent_exists"]){
+					addText("Your opponent disconnected");
+					currentTurn = -1;
+				}
+			}
+
+			else if (msg["action"] == "OPPONENT RECONNECT"){
+				board.removeChild(messageWindow);
+				currentTurn = msg["turn"];
 			}
 
 			else if (msg["action"] == "MOVE"){
@@ -594,51 +612,26 @@ function Checkers() {
 			}
 
 			else if (msg["action"] == "END"){
-				var blurryBox = new createjs.Shape();
-				blurryBox.graphics.beginFill("white").drawRect(0, 0, 400, 400);
-				blurryBox.alpha = 0.7;
-				board.addChild(blurryBox);
 				if (msg["reason"] == "GAMEOVER"){
 					var textString = "You Lost";
 					var playerId = myPlayer ? "player_1" : "player_0";
 					if (numberOfPieces[playerId] > 0){
 						textString = "You Won";
 					}
-					var text = new createjs.Text(textString, "20px Arial", "#000000");
-					text.x = 150;
-					text.y = 200;
-					board.addChild(text);
-					if (myPlayer){
-						text.regX = 100;
-						text.regY = 0;
-						text.rotation = 180;
-					}
+					addText(textString);
 				}
 				else if (msg["reason"] == "DISCONNECT"){
-					var text = new createjs.Text("Your opponent disconnected", "20px Arial", "#000000");
-					text.x = 75;
-					text.y = 200;
-					board.addChild(text);
-					if (myPlayer){
-						text.regX = 250;
-						text.regY = 0;
-						text.rotation = 180;
-					}
+					console.log("other player disconnected");
+					addText("Your opponent disconnected");
+					currentTurn = -1;
+					
+					
 
 				}	
 			}
 
 			else if (msg["action"] == "ERROR"){
-
-				var blurryBox = new createjs.Shape();
-				blurryBox.graphics.beginFill("white").drawRect(0, 0, 400, 400);
-				blurryBox.alpha = 0.7;
-				board.addChild(blurryBox);
-
-				var text = new createjs.Text(msg["reason"], "20px Arial", "#000000");
-				text.x = 25;
-				text.y = 200;
-				board.addChild(text);
+				addText(msg["reason"]);
 			}
 		});
 
