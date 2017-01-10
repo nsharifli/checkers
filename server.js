@@ -18,13 +18,10 @@ var uuid = require('node-uuid');
 //Routes
 
 app.get('/', function (req, res) {
-	console.log(req.params);
 	res.sendfile('views/index.html');
 })
 
 app.get('/game/:id', function (req, res) {
-	console.log(req.params);
-	console.log(req.cookies);
 	if (!req.cookies.userIdCookie){
 		var idCookie = uuid.v4();
 		res.cookie('userIdCookie', idCookie, { maxAge: 900000, httpOnly: false });
@@ -38,7 +35,7 @@ app.get('/game/:id', function (req, res) {
 
 // Starts express server listening on 19456
 var httpServer = app.listen(19456, "0.0.0.0", function () {
-	console.log('Example app listening on port 19456!')
+	console.log('App listening on port 19456!')
 })
 
 var games = {};
@@ -197,7 +194,6 @@ socket.on('connection', function(client){
 			msg.board.forEach(function(row){
 				row.forEach(function(square){
 					if (square == 0 || square == 2){
-						console.log(games[gameId]["numberOfPieces"]["white"]);
 						games[gameId]["numberOfPieces"]["white"] += 1;
 					}
 					else if (square == 1 || square == 3){
@@ -264,26 +260,16 @@ socket.on('connection', function(client){
 			
 			
 		}
-		console.log(games[client.gameId]);
+
 
 		if (myGame["player_1"]){
-			console.log("player 0 disconnected");
 			myGame["player_1"].send({
 				action: "END",
 				reason: "DISCONNECT"
 			});
 
 			
-		}
-		console.log("disconnected");
-		
-		
-		
-
-		
-		
-
-		
+		}	
 	});
 
 });

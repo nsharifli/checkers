@@ -581,7 +581,6 @@ function Checkers() {
 			}
 
 			else if (msg["action"] == "MOVE"){
-				console.log(msg["numberOfPieces"]);
 				document.getElementById("white_score").innerHTML = msg["numberOfPieces"]["white"];
 				document.getElementById("red_score").innerHTML = msg["numberOfPieces"]["red"];
 				var move = msg["move"];
@@ -632,7 +631,6 @@ function Checkers() {
 					addText(textString);
 				}
 				else if (msg["reason"] == "DISCONNECT"){
-					console.log("other player disconnected");
 					addText("Your opponent disconnected");
 					currentTurn = -1;
 					
@@ -674,7 +672,7 @@ function Checkers() {
 		if (gameId == "") {
 			gameId = Math.floor(Math.random() * 1000000).toString();
 		}
-		console.log(gameId);
+
 
 
 		socket = initSocket();
