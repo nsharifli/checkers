@@ -10,8 +10,8 @@ function Checkers() {
 	var gameId;
 	var board;
 	var virtualBoard;
-	var numberOfPieces = {player_0: 12, player_1: 12};
 	var messageWindow;
+
 
 
 	function findLeft(position, direction) {
@@ -291,6 +291,7 @@ function Checkers() {
 
 					else if (col == 2){
 						piece.graphics.beginFill("#FAFAFA").drawCircle(0, 0, 20);
+						piece.graphics.beginFill("#BDBDBD").drawPolyStar(0, 0, 20, 5, 0.6, -90);
 						piece.player = 0;
 						piece.king = 1;
 						board.addChild(piece);
@@ -299,6 +300,7 @@ function Checkers() {
 
 					else if (col == 3){
 						piece.graphics.beginFill("#E53935").drawCircle(0, 0, 20);
+						piece.graphics.beginFill("#BDBDBD").drawPolyStar(0, 0, 20, 5, 0.6, -90);
 						piece.player = 1;
 						piece.king = 1;
 						board.addChild(piece);
@@ -396,10 +398,10 @@ function Checkers() {
 								var selectedPath = paths.find(function(path){
 									var destination = path[path.length - 1];
 									return (destination.boardX == closestSquare.boardX) &&
-									(destination.boardY == closestSquare.boardY);
+										(destination.boardY == closestSquare.boardY);
 								});
 
-								for (i = 0 ; i < selectedPath.length; i += 2){
+								for (var i = 0 ; i < selectedPath.length; i += 2){
 									taken_enemy = virtualBoard[selectedPath[i].boardY][selectedPath[i].boardX][1]
 									board.removeChild(taken_enemy);
 									enemy = {
@@ -408,12 +410,14 @@ function Checkers() {
 									};
 									taken_enemies.push(enemy);
 									virtualBoard[selectedPath[i].boardY][selectedPath[i].boardX][1] = null;
-									if (myPlayer == 0){
-										numberOfPieces.player_1 -= 1;
+									if (myPlayer == 1){
+										document.getElementById("white_score").innerHTML -= 1;
 									}
 									else {
-										numberOfPieces.player_0 -= 1;
+										document.getElementById("red_score").innerHTML -= 1;
 									}
+									
+									
 
 								};
 
@@ -423,14 +427,14 @@ function Checkers() {
 							if (myPlayer){
 								if (closestSquare.boardY == 7){
 									piece.king = 1;
-									piece.graphics.beginFill("grey").drawPolyStar(0, 0, 20, 5, 0.6, -90);
+									piece.graphics.beginFill("#BDBDBD").drawPolyStar(0, 0, 20, 5, 0.6, -90);
 									king = true;
 								}
 							}
 							else {
 								if (closestSquare.boardY == 0) {
 									piece.king = 1;
-									piece.graphics.beginFill("grey").drawPolyStar(0, 0, 20, 5, 0.6, -90);
+									piece.graphics.beginFill("#BDBDBD").drawPolyStar(0, 0, 20, 5, 0.6, -90);
 									king = true;
 								}
 							}
@@ -455,14 +459,13 @@ function Checkers() {
 								boardToServer.push(newRow);
 							})
 
-							console.log(numberOfPieces);
+							
 							socket.send({
 								gameId: gameId,
 								action: "MOVE",
 								move: move,
 								taken_enemies: taken_enemies,
 								king: king,
-								numberOfPieces: numberOfPieces,
 								board: boardToServer
 							})
 							currentTurn = currentTurn ? 0 : 1;
@@ -530,7 +533,8 @@ function Checkers() {
 				addText("Waiting for second player...")
 			}
 			
-			else if (msg["action"] == "START"){			
+			else if (msg["action"] == "START"){
+				numberOfPieces = msg["numberOfPieces"];			
 				myPlayer = msg["player"];
 				if (myPlayer == 1){
 					drawPieces(msg["board"]);
@@ -551,6 +555,8 @@ function Checkers() {
 				myPlayer = msg["player"];
 				drawPieces(msg["board"]);
 				currentTurn = msg["turn"];
+				document.getElementById("white_score").innerHTML = msg["numberOfPieces"]["white"];
+				document.getElementById("red_score").innerHTML = msg["numberOfPieces"]["red"];
 				if (!msg["isStarted"]){
 					currentTurn = -1;
 					addText("Waiting for second player...")
@@ -575,6 +581,9 @@ function Checkers() {
 			}
 
 			else if (msg["action"] == "MOVE"){
+				console.log(msg["numberOfPieces"]);
+				document.getElementById("white_score").innerHTML = msg["numberOfPieces"]["white"];
+				document.getElementById("red_score").innerHTML = msg["numberOfPieces"]["red"];
 				var move = msg["move"];
 				var initY = move["initialY"];
 				var initX = move["initialX"];
@@ -588,7 +597,7 @@ function Checkers() {
 
 				if (msg["king"] == true){
 					moved_piece.king = 1;
-					moved_piece.graphics.beginFill("grey").drawPolyStar(0, 0, 20, 5, 0.6, -90);
+					moved_piece.graphics.beginFill("#BDBDBD").drawPolyStar(0, 0, 20, 5, 0.6, -90);
 
 				}
 
@@ -613,9 +622,11 @@ function Checkers() {
 
 			else if (msg["action"] == "END"){
 				if (msg["reason"] == "GAMEOVER"){
+					document.getElementById("white_score").innerHTML = msg["numberOfPieces"]["white"];
+					document.getElementById("red_score").innerHTML = msg["numberOfPieces"]["red"];
 					var textString = "You Lost";
-					var playerId = myPlayer ? "player_1" : "player_0";
-					if (numberOfPieces[playerId] > 0){
+					var playerColor = myPlayer ? "red" : "white";
+					if (msg["numberOfPieces"][playerColor] > 0){
 						textString = "You Won";
 					}
 					addText(textString);

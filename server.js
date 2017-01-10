@@ -68,20 +68,24 @@ socket.on('connection', function(client){
 				if (games[gameId]["player_0"] && games[gameId]["player_0"].userIdCookie == client.userIdCookie
 					&& !games[gameId]["player_0"].connected){
 					client.gameId = gameId;
-					console.log("player_0 reconnects");
-					console.log(games[gameId]["board"]);
 					games[gameId]["player_0"] = client;
+
 					var opponent_exists = true;
-					if (!games[gameId]["player_1"].connected){
+					if (games[gameId]["isStarted"]){
+						if (!games[gameId]["player_1"].connected){
 						var opponent_exists = false;
 					}
+
+					}
+					
 					games[gameId]["player_0"].send({
 						action: "RECONNECT",
 						player: 0, 
 						board: games[gameId]["board"],
 						turn: games[gameId]["turn"],
 						isStarted: games[gameId]["isStarted"],
-						opponent_exists: opponent_exists
+						opponent_exists: opponent_exists,
+						numberOfPieces: games[gameId]["numberOfPieces"]
 					})
 					if (games[gameId]["isStarted"]) {
 							games[gameId]["player_1"].send({
@@ -107,14 +111,16 @@ socket.on('connection', function(client){
 						board: games[gameId]["board"],
 						turn: games[gameId]["turn"],
 						isStarted: games[gameId]["isStarted"],
-						opponent_exists: opponent_exists
+						opponent_exists: opponent_exists,
+						numberOfPieces: games[gameId]["numberOfPieces"]
 					})
 
 
 
 					games[gameId]["player_0"].send({
 						action: "OPPONENT RECONNECT",
-						turn: games[gameId]["turn"]
+						turn: games[gameId]["turn"],
+						numberOfPieces: games[gameId]["numberOfPieces"]
 					})
 						
 				}
@@ -127,14 +133,16 @@ socket.on('connection', function(client){
 						player: 0,
 						action: "START",
 						turn: 0,
-						board: games[gameId]["board"]
+						board: games[gameId]["board"],
+						numberOfPieces: games[gameId]["numberOfPieces"]
 
 					})
 					games[gameId]["player_1"].send({
 						player: 1,
 						action: "START",
 						turn: 0,
-						board: games[gameId]["board"]
+						board: games[gameId]["board"],
+						numberOfPieces: games[gameId]["numberOfPieces"]
 					})
 				}
 
@@ -158,22 +166,47 @@ socket.on('connection', function(client){
 				[-1, 0, -1, 0, -1, 0, -1, 0],
 				[0, -1, 0, -1, 0, -1, 0, -1]
 				];
+				var numberOfPieces = {
+					white: 12,
+					red: 12
+				};
 				client.gameId = gameId;
 				games[gameId] = {
 					turn: 0,
 					player_0: client,
 					isStarted: false, 
-					board: board
+					board: board,
+					numberOfPieces: numberOfPieces
 				};
 				games[gameId]["player_0"].send({
 					action: "WAIT",
-					board: games[gameId]["board"]
+					board: games[gameId]["board"],
+					numberOfPieces: games[gameId]["numberOfPieces"]
 				})
 			}		
 		}
 
 		else if (msg.action == "MOVE") {
 			var gameId = msg.gameId;
+
+			games[gameId]["numberOfPieces"] = {
+					white: 0,
+					red: 0
+				};
+
+			msg.board.forEach(function(row){
+				row.forEach(function(square){
+					if (square == 0 || square == 2){
+						console.log(games[gameId]["numberOfPieces"]["white"]);
+						games[gameId]["numberOfPieces"]["white"] += 1;
+					}
+					else if (square == 1 || square == 3){
+						games[gameId]["numberOfPieces"]["red"] += 1;
+					}
+				})
+			})
+			msg["numberOfPieces"] = games[gameId]["numberOfPieces"];
+
 
 
 			if (games[gameId]["turn"] == 0){
@@ -188,17 +221,19 @@ socket.on('connection', function(client){
 				games[gameId]["board"] = msg.board;
 			}
 
-			if (msg["numberOfPieces"]["player_0"] == 0 || msg["numberOfPieces"]["player_1"] == 0) {
+			if (games[gameId]["numberOfPieces"]["white"] == 0 || games[gameId]["numberOfPieces"]["red"] == 0) {
 				var myGame = games[client.gameId];
 				delete games[client.gameId];
 				myGame["player_1"].send({
 					action: "END",
-					reason: "GAMEOVER"
+					reason: "GAMEOVER",
+					numberOfPieces: myGame["numberOfPieces"]
 				});
 
 				myGame["player_0"].send({
 					action: "END",
-					reason: "GAMEOVER"
+					reason: "GAMEOVER",
+					numberOfPieces: myGame["numberOfPieces"]
 				});
 				myGame["player_1"].disconnect();
 				myGame["player_0"].disconnect();

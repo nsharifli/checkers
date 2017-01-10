@@ -93,9 +93,13 @@
 			<div class="image content">
 
 				<div class="description">
-		    		<div class="ui header">Web Checkers</div>
-		    		<p>This is my first web project. You can find the source code for the project at my 
-		    		<a href="https://github.com/nsharifli/checkers" target="_blank">github</a> page.</p>
+		    		<div class="ui header">Checkers Web Application</div>
+		    		<div class="ui bulleted list">
+		    			<div class="item">First personal web development project; multiplayer checkers web application </div>
+		    			<div class="item">Implemented server side using Node.js, Express and Socket.io </div>
+		    			<div class="item">Used EaselJS for graphics, vanilla javascript for game logic and Semantic-ui with Jquery for UI</div>
+		    			<div class ="item">Check out the source code at my <a href="https://github.com/nsharifli/checkers" target="_blank">github</a> page </div>
+		    		</div>
 		  		</div>
 		  	</div>
    
@@ -109,59 +113,59 @@
 			<div class="header">
 				How To Play Checkers
 			</div>
+			<div class="ui basic segment">
+				<div class="ui relaxed divided list">
+				  	<div class="item">
+			      		<div class="header" align = "center">Setup</div>
+			      		<p>Checkers is played on a standard 64 square board. Only the 32 dark colored squares are used in play. Each player begins the game with 12 pieces, or checkers, placed in the three rows closest to him or her. The object of the game is to capture all of your opponent’s checkers or position your pieces so that your opponent has no available moves. </p>
+				  	</div>
 
-			<div class="ui relaxed divided list">
-			  	<div class="item">
-		      		<a class="header" align = "center">Setup</a>
-		      		<p>Checkers is played on a standard 64 square board. Only the 32 dark colored squares are used in play. Each player begins the game with 12 pieces, or checkers, placed in the three rows closest to him or her. The object of the game is to capture all of your opponent’s checkers or position your pieces so that your opponent has no available moves. </p>
-			  	</div>
+				  	<div class="item">
+				    	
+			      		<div class="header" align = "center">Movement</div>
+			      		<p>Basic movement is to move a checker one space diagonally forward. You can not move a checker backwards until it becomes a King, as described below.</p>
+				    	
+				  	</div>
 
-			  	<div class="item">
-			    	
-		      		<a class="header" align = "center">Movement</a>
-		      		<p>Basic movement is to move a checker one space diagonally forward. You can not move a checker backwards until it becomes a King, as described below.</p>
-			    	
-			  	</div>
+				  	<div class="item">
+				    	
+			      		<div class="header" align = "center">Jumping</div>
+			      		<ul class="ui bulleted list">
+								<div class = "item"><p>If one of your opponent’s checkers is on a forward diagonal next to one of your checkers, and the next space beyond the opponent’s checker is empty, then your checker must jump the opponent’s checker and land in the space beyond. Your opponent’s checker is captured and removed from the board. </p></div>
 
-			  	<div class="item">
-			    	
-		      		<a class="header" align = "center">Jumping</a>
-		      		<ul class="ui bulleted list">
-							<div class = "item"><p>If one of your opponent’s checkers is on a forward diagonal next to one of your checkers, and the next space beyond the opponent’s checker is empty, then your checker must jump the opponent’s checker and land in the space beyond. Your opponent’s checker is captured and removed from the board. </p></div>
+								<div class = "item"><p>After making one jump, your checker might have another jump available from its new position. Your checker must take that jump too. It must continue to jump until there are no more jumps available. Both men and kings are allowed to make multiple jumps.</p></div>
 
-							<div class = "item"><p>After making one jump, your checker might have another jump available from its new position. Your checker must take that jump too. It must continue to jump until there are no more jumps available. Both men and kings are allowed to make multiple jumps.</p></div>
+								<div class = "item"><p>If, at the start of a turn, more than one of your checkers has a jump available, then you may decide which one you will move. But once you have chosen one, it must take all the jumps that it can.</p> </div>
+						</ul>
+				    	
+				  	</div>
 
-							<div class = "item"><p>If, at the start of a turn, more than one of your checkers has a jump available, then you may decide which one you will move. But once you have chosen one, it must take all the jumps that it can.</p> </div>
-					</ul>
-			    	
-			  	</div>
+				  	<div class="item">
+				    	
+			      		<div class="header" align = "center">You Must Jump if Possible</div>
+			      		<ul class="ui bulleted list">
+								<div class = "item"><p>If a jump is available for one of your pieces, you must make that jump. If more jumps are available with that same piece, you must continue to jump with it until it can jump no more. To make the second and third jump with a piece, you do not need to click that piece again. Just click the next space to which it will jump. </p></div>
 
-			  	<div class="item">
-			    	
-		      		<a class="header" align = "center">You Must Jump if Possible</a>
-		      		<ul class="ui bulleted list">
-							<div class = "item"><p>If a jump is available for one of your pieces, you must make that jump. If more jumps are available with that same piece, you must continue to jump with it until it can jump no more. To make the second and third jump with a piece, you do not need to click that piece again. Just click the next space to which it will jump. </p></div>
+								<div class = "item"><p>If more than one of your pieces has a jump available at the start of your turn, you can choose which piece you will move. But then you must make all the jumps available for that piece.</p> </div>
 
-							<div class = "item"><p>If more than one of your pieces has a jump available at the start of your turn, you can choose which piece you will move. But then you must make all the jumps available for that piece.</p> </div>
+						</ul>
+				    	
+				  	</div>
 
-					</ul>
-			    	
-			  	</div>
+				  	<div class="item">
+				    	
+			      		<div class="header" align = "center">Crowning</div>
+			      		<ul class="ui bulleted list">
+								<div class = "item"><p>When one of your checkers reaches the opposite side of the board, it is crowned and becomes a King. Your turn ends there. </p></div>
 
-			  	<div class="item">
-			    	
-		      		<a class="header" align = "center">Crowning</a>
-		      		<ul class="ui bulleted list">
-							<div class = "item"><p>When one of your checkers reaches the opposite side of the board, it is crowned and becomes a King. Your turn ends there. </p></div>
+								<div class = "item"><p>A King can move backward as well as forward along the diagonals. It can only move a distance of one space.</p> </div>
 
-							<div class = "item"><p>A King can move backward as well as forward along the diagonals. It can only move a distance of one space.</p> </div>
+								<div class = "item"><p>A King can also jump backward and forward. It must jump when possible, and it must take all jumps that are available to it. In each jump, the King can only jump over one opposing piece at a time, and it must land in the space just beyond the captured piece. The King can not move multiple spaces before or after jumping a piece. </p> </div>
 
-							<div class = "item"><p>A King can also jump backward and forward. It must jump when possible, and it must take all jumps that are available to it. In each jump, the King can only jump over one opposing piece at a time, and it must land in the space just beyond the captured piece. The King can not move multiple spaces before or after jumping a piece. </p> </div>
-
-					</ul>
-			    	
-			  	</div>
-			  
+						</ul>
+				    	
+				  	</div>
+				</div>
 			</div>
 
 
