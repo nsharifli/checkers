@@ -11,6 +11,7 @@ function Checkers() {
 	var board;
 	var virtualBoard;
 	var messageWindow;
+	var turn_id;
 
 
 
@@ -469,6 +470,13 @@ function Checkers() {
 								board: boardToServer
 							})
 							currentTurn = currentTurn ? 0 : 1;
+							if (turn_id == "YOUR"){
+								turn_id = "OPPONENT";
+							}
+							else {
+								turn_id = "YOUR";
+							}
+							document.getElementById("turn_id").innerHTML = turn_id;
 						}
 						
 						hit = anyHit(virtualBoard);
@@ -533,15 +541,18 @@ function Checkers() {
 				addText("Waiting for second player...")
 			}
 			
-			else if (msg["action"] == "START"){
-				numberOfPieces = msg["numberOfPieces"];			
+			else if (msg["action"] == "START"){			
 				myPlayer = msg["player"];
 				if (myPlayer == 1){
 					drawPieces(msg["board"]);
+					turn_id = "OPPONENT";
+					document.getElementById("turn_id").innerHTML = turn_id;
+					
 				}
 				currentTurn = 0;
 				if (myPlayer == 0){
 					board.removeChild(messageWindow);
+					turn_id = "YOUR";
 				}
 
 				if (myPlayer){
@@ -549,6 +560,7 @@ function Checkers() {
 					board.regY = 400;
 					board.rotation = 180;
 				}
+
 			}
 
 			else if (msg["action"] == "RECONNECT"){
@@ -583,6 +595,15 @@ function Checkers() {
 			else if (msg["action"] == "MOVE"){
 				document.getElementById("white_score").innerHTML = msg["numberOfPieces"]["white"];
 				document.getElementById("red_score").innerHTML = msg["numberOfPieces"]["red"];
+				if (turn_id == "YOUR"){
+					turn_id = "OPPONENT";
+				}
+				else {
+					turn_id = "YOUR";
+				}
+				document.getElementById("turn_id").innerHTML = turn_id;
+				
+				
 				var move = msg["move"];
 				var initY = move["initialY"];
 				var initX = move["initialX"];
