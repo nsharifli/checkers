@@ -1,17 +1,17 @@
 <html>
 	<head>
-		<link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+		<link rel="shortcut icon" href="/favicon.ico?v=1">
 		<script src = "https://code.jquery.com/jquery-3.1.1.min.js"></script>
 		<link rel="stylesheet" href="https://cdn.jsdelivr.net/semantic-ui/2.2.6/semantic.min.css">
 		<script src="https://cdn.jsdelivr.net/semantic-ui/2.2.6/semantic.min.js"></script>
 		<link rel="stylesheet" href="/style/checkers.css">
 		<script>
 			function onload(){
-				var buttonNewGame = document.getElementById("newGame");
+				var buttonJoinGame = document.getElementById("joinGame");
 				var inputGameId = document.getElementById("gameId");
 				var aboutTab = document.getElementById("about");
 				var howToTab = document.getElementById("howto");
-				buttonNewGame.addEventListener("click", function() {
+				buttonJoinGame.addEventListener("click", function() {
 					var id = inputGameId.value.trim();
 					if (id.length != 0){
 						window.location = "/game/" + id;
@@ -40,6 +40,7 @@
 
 			}
 		</script>
+		<title>Checkers</title>
 	</head>
 
 	<body onload="onload();">
@@ -61,7 +62,7 @@
 			<div class="ui centered one column grid">
 				<div class="row">
 					<div class = "column">
-						<h1 align = "center">Welcome to Online Multiplayer Checkers Website! </h1>
+						<h1 align = "center">Online Multiplayer Checkers</h1>
 					</div>
 				</div>
 
@@ -75,11 +76,12 @@
 
 				<div class = "three column centered row">
 					<div class = "column">
-					  	<div id="newGame" class="ui positive fluid button">
-					  		Create/Join Game
+					  	<div id="joinGame" class="ui positive fluid button">
+					  		Join Game
 						</div>
 					</div>
 				</div>
+			</div>
 		</div>
 
 

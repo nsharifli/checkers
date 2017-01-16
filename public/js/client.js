@@ -292,7 +292,12 @@ function Checkers() {
 
 					else if (col == 2){
 						piece.graphics.beginFill("#FAFAFA").drawCircle(0, 0, 20);
-						piece.graphics.beginFill("#BDBDBD").drawPolyStar(0, 0, 20, 5, 0.6, -90);
+						if (myPlayer){
+							piece.graphics.beginFill("#BDBDBD").drawPolyStar(0, 0, 20, 5, 0.6, 90);
+						}
+						else {
+							piece.graphics.beginFill("#BDBDBD").drawPolyStar(0, 0, 20, 5, 0.6, -90);
+						}
 						piece.player = 0;
 						piece.king = 1;
 						board.addChild(piece);
@@ -301,7 +306,12 @@ function Checkers() {
 
 					else if (col == 3){
 						piece.graphics.beginFill("#E53935").drawCircle(0, 0, 20);
-						piece.graphics.beginFill("#BDBDBD").drawPolyStar(0, 0, 20, 5, 0.6, -90);
+						if (myPlayer){
+							piece.graphics.beginFill("#BDBDBD").drawPolyStar(0, 0, 20, 5, 0.6, 90);
+						}
+						else {
+							piece.graphics.beginFill("#BDBDBD").drawPolyStar(0, 0, 20, 5, 0.6, -90);
+						}
 						piece.player = 1;
 						piece.king = 1;
 						board.addChild(piece);
@@ -519,6 +529,46 @@ function Checkers() {
 		board.addChild(messageWindow);
 	}
 
+	function highlight(){
+		
+			for (row = 0; row < 8; row++) {
+				for (col = 0; col < 8; col++){
+					var piece = virtualBoard[row][col][1];
+					if (piece == null || piece.player != myPlayer) {
+						continue;
+					}
+
+					console.log("highlight" + anyHit());
+
+					if (anyHit() && availableMoves(piece).length != 0){
+						console.log("here")
+						if (myPlayer){
+								piece.graphics.beginStroke("#FFEBEE").drawCircle(0, 0, 20) ;
+							}
+							else {
+								piece.graphics.beginStroke("#757575").drawCircle(0, 0, 20) ;
+
+							}
+						
+					}
+
+					else if (!anyHit() && availableMoves(piece).length != 0) {
+						console.log("highlighting")
+						if (myPlayer){
+								piece.graphics.beginStroke("#FFEBEE").drawCircle(0, 0, 20) ;
+							}
+							else {
+								piece.graphics.beginStroke("#757575").drawCircle(0, 0, 20) ;
+
+							}
+
+					}
+				}
+			}
+	}
+
+
+
 	function initSocket() {
 		var socket = new io({reconnection: false});
 
@@ -538,7 +588,9 @@ function Checkers() {
 			if (msg["action"] == "WAIT"){
 				drawPieces(msg["board"]);
 				currentTurn = -1;
-				addText("Waiting for second player...")
+				addText("Waiting for second player...");
+				turn_id = " ";
+				document.getElementById("turn_id").innerHTML = turn_id;
 			}
 			
 			else if (msg["action"] == "START"){			
@@ -546,7 +598,7 @@ function Checkers() {
 				if (myPlayer == 1){
 					drawPieces(msg["board"]);
 					turn_id = "OPPONENT";
-					document.getElementById("turn_id").innerHTML = turn_id;
+					
 					
 				}
 				currentTurn = 0;
@@ -560,6 +612,7 @@ function Checkers() {
 					board.regY = 400;
 					board.rotation = 180;
 				}
+				document.getElementById("turn_id").innerHTML = turn_id;
 
 			}
 
@@ -569,6 +622,7 @@ function Checkers() {
 				currentTurn = msg["turn"];
 				document.getElementById("white_score").innerHTML = msg["numberOfPieces"]["white"];
 				document.getElementById("red_score").innerHTML = msg["numberOfPieces"]["red"];
+
 				if (!msg["isStarted"]){
 					currentTurn = -1;
 					addText("Waiting for second player...")
@@ -585,6 +639,21 @@ function Checkers() {
 					addText("Your opponent disconnected");
 					currentTurn = -1;
 				}
+
+				if (currentTurn == myPlayer){
+					turn_id = "YOUR";
+				}
+
+				else if (currentTurn != myPlayer && currentTurn != -1){
+					turn_id = "OPPONENT";
+				}
+
+				else {
+					turn_id = " ";
+				}
+
+				document.getElementById("turn_id").innerHTML = turn_id;
+
 			}
 
 			else if (msg["action"] == "OPPONENT RECONNECT"){
@@ -633,6 +702,12 @@ function Checkers() {
 				})
 				
 				hit = anyHit(virtualBoard);
+
+				/////not complete;
+				if (hit){
+
+				};
+				////;
 				console.log("hit flag ", hit)
 				console.log("Following move has been done ", msg);
 
@@ -688,7 +763,8 @@ function Checkers() {
 		gameId = "";
 		var pathnames = window.location.pathname.split("/");
 		if (pathnames.length >= 3){
-			gameId = pathnames[2];		
+			gameId = pathnames[2];
+			document.getElementById("game_title").innerHTML ="Checkers: " +  gameId;		
 		}
 		if (gameId == "") {
 			gameId = Math.floor(Math.random() * 1000000).toString();
