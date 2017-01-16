@@ -7,11 +7,11 @@
 		<link rel="stylesheet" href="/style/checkers.css">
 		<script>
 			function onload(){
-				var buttonJoinGame = document.getElementById("joinGame");
+				var buttonNewGame = document.getElementById("newGame");
 				var inputGameId = document.getElementById("gameId");
 				var aboutTab = document.getElementById("about");
 				var howToTab = document.getElementById("howto");
-				buttonJoinGame.addEventListener("click", function() {
+				buttonNewGame.addEventListener("click", function() {
 					var id = inputGameId.value.trim();
 					if (id.length != 0){
 						window.location = "/game/" + id;
@@ -38,6 +38,8 @@
 					}
 				});
 
+				gameId = Math.floor(Math.random() * 10000000000).toString();
+				document.getElementById("gameId").value = gameId;
 			}
 		</script>
 		<title>Checkers</title>
@@ -76,12 +78,11 @@
 
 				<div class = "three column centered row">
 					<div class = "column">
-					  	<div id="joinGame" class="ui positive fluid button">
-					  		Join Game
+					  	<div id="newGame" class="ui positive fluid button">
+					  		Create/Join Game
 						</div>
 					</div>
 				</div>
-			</div>
 		</div>
 
 
