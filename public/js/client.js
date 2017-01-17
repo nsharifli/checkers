@@ -613,6 +613,9 @@ function Checkers() {
 					board.rotation = 180;
 				}
 				document.getElementById("turn_id").innerHTML = turn_id;
+				document.getElementById("white_score").innerHTML = msg["numberOfPieces"]["white"];
+				document.getElementById("red_score").innerHTML = msg["numberOfPieces"]["red"];
+
 
 			}
 
