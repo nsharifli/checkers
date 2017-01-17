@@ -479,6 +479,8 @@ function Checkers() {
 								king: king,
 								board: boardToServer
 							})
+							highlight(true);
+
 							currentTurn = currentTurn ? 0 : 1;
 							if (turn_id == "YOUR"){
 								turn_id = "OPPONENT";
@@ -529,42 +531,42 @@ function Checkers() {
 		board.addChild(messageWindow);
 	}
 
-	function highlight(){
-		
-			for (row = 0; row < 8; row++) {
-				for (col = 0; col < 8; col++){
-					var piece = virtualBoard[row][col][1];
-					if (piece == null || piece.player != myPlayer) {
-						continue;
-					}
+	function highlight(afterMove){
+		for (var row = 0; row < 8; row++) {
+			for (var col = 0; col < 8; col++){
+				var piece = virtualBoard[row][col][1];
+				
+				if (piece == null || piece.player != myPlayer) {
+					continue;
+				}
 
-					console.log("highlight" + anyHit());
+				piece.graphics.clear();
 
-					if (anyHit() && availableMoves(piece).length != 0){
-						console.log("here")
-						if (myPlayer){
-								piece.graphics.beginStroke("#FFEBEE").drawCircle(0, 0, 20) ;
-							}
-							else {
-								piece.graphics.beginStroke("#757575").drawCircle(0, 0, 20) ;
 
-							}
-						
-					}
-
-					else if (!anyHit() && availableMoves(piece).length != 0) {
-						console.log("highlighting")
-						if (myPlayer){
-								piece.graphics.beginStroke("#FFEBEE").drawCircle(0, 0, 20) ;
-							}
-							else {
-								piece.graphics.beginStroke("#757575").drawCircle(0, 0, 20) ;
-
-							}
-
+				if (myPlayer == 0) {
+					piece.graphics.beginFill("#FAFAFA").drawCircle(0, 0, 20);
+					if (piece.king){
+						piece.graphics.beginFill("#BDBDBD").drawPolyStar(0, 0, 20, 5, 0.6, -90).endFill();
 					}
 				}
+
+				else {
+					piece.graphics.beginFill("#E53935").drawCircle(0, 0, 20);
+					if (piece.king){
+						piece.graphics.beginFill("#BDBDBD").drawPolyStar(0, 0, 20, 5, 0.6, 90).endFill();
+					}
+				}
+
+
+				if (anyHit() && availableMoves(piece).length != 0 && !afterMove){
+					piece.graphics.setStrokeStyle(2, "round").beginStroke("#76FF03").drawCircle(0, 0, 20);						
+				}
+
+				else if (!anyHit() && availableMoves(piece).length != 0 && !afterMove) {
+					piece.graphics.setStrokeStyle(2, "round").beginStroke("#76FF03").drawCircle(0, 0, 20);
+				}
 			}
+		}
 	}
 
 
@@ -618,6 +620,8 @@ function Checkers() {
 				document.getElementById("red_score").innerHTML = msg["numberOfPieces"]["red"];
 				document.getElementById("turn_status").innerHTML = "TURN";
 
+				highlight(false);
+
 
 			}
 
@@ -659,6 +663,8 @@ function Checkers() {
 				}
 
 				document.getElementById("turn_id").innerHTML = turn_id;
+
+				highlight(false);
 
 			}
 
@@ -709,15 +715,11 @@ function Checkers() {
 				
 				hit = anyHit(virtualBoard);
 
-				/////not complete;
-				if (hit){
-
-				};
-				////;
 				console.log("hit flag ", hit)
 				console.log("Following move has been done ", msg);
 
 				numberOfPieces = msg["numberOfPieces"];
+				highlight(false);
 
 			}
 
