@@ -591,6 +591,7 @@ function Checkers() {
 				addText("Waiting for second player...");
 				turn_id = " ";
 				document.getElementById("turn_id").innerHTML = turn_id;
+				document.getElementById("turn_status").innerHTML = "WAIT";
 			}
 			
 			else if (msg["action"] == "START"){			
@@ -615,6 +616,7 @@ function Checkers() {
 				document.getElementById("turn_id").innerHTML = turn_id;
 				document.getElementById("white_score").innerHTML = msg["numberOfPieces"]["white"];
 				document.getElementById("red_score").innerHTML = msg["numberOfPieces"]["red"];
+				document.getElementById("turn_status").innerHTML = "TURN";
 
 
 			}
@@ -625,6 +627,7 @@ function Checkers() {
 				currentTurn = msg["turn"];
 				document.getElementById("white_score").innerHTML = msg["numberOfPieces"]["white"];
 				document.getElementById("red_score").innerHTML = msg["numberOfPieces"]["red"];
+				document.getElementById("turn_status").innerHTML = "TURN";
 
 				if (!msg["isStarted"]){
 					currentTurn = -1;
