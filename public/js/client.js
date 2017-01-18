@@ -565,8 +565,38 @@ function Checkers() {
 				else if (!anyHit() && availableMoves(piece).length != 0 && !afterMove) {
 					piece.graphics.setStrokeStyle(2, "round").beginStroke("#76FF03").drawCircle(0, 0, 20);
 				}
+
 			}
 		}
+	}
+
+	function anyPossibleMove(){
+		var canMove = false;
+		for (var row = 0; row < 8; row++) {
+			for (var col = 0; col < 8; col++){
+				var piece = virtualBoard[row][col][1];
+				
+				if (piece == null || piece.player != myPlayer) {
+					continue;
+				}
+
+
+
+				if (anyHit() && availableMoves(piece).length != 0){
+					piece.graphics.setStrokeStyle(2, "round").beginStroke("#76FF03").drawCircle(0, 0, 20);
+					canMove = true;
+					break;						
+				}
+
+				else if (!anyHit() && availableMoves(piece).length != 0) {
+					piece.graphics.setStrokeStyle(2, "round").beginStroke("#76FF03").drawCircle(0, 0, 20);
+					canMove = true;
+					break;
+				}
+
+			}
+		}
+		return canMove;
 	}
 
 
@@ -720,6 +750,13 @@ function Checkers() {
 
 				numberOfPieces = msg["numberOfPieces"];
 				highlight(false);
+				if (!anyPossibleMove()){
+					socket.send({
+						gameId: gameId,
+						action: "NOMOVE",
+						lostPlayer: myPlayer
+					})
+				}
 
 			}
 
@@ -737,9 +774,13 @@ function Checkers() {
 				else if (msg["reason"] == "DISCONNECT"){
 					addText("Your opponent disconnected");
 					currentTurn = -1;
-					
-					
-
+				}
+				else if (msg["reason"] == "NOMOVE"){
+					var textString = "You Lost";
+					if (msg["lostPlayer"] != myPlayer){
+						textString = "You Won";
+					}
+					addText(textString);
 				}	
 			}
 

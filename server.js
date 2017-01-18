@@ -240,6 +240,28 @@ socket.on('connection', function(client){
 
 			}
 		}
+
+		else if (msg.action == "NOMOVE") {
+			var myGame = games[client.gameId];
+			delete games[client.gameId];
+			myGame["player_1"].send({
+				action: "END",
+				reason: "NOMOVE",
+				lostPlayer: msg["lostPlayer"]
+			});
+
+			myGame["player_0"].send({
+				action: "END",
+				reason: "NOMOVE",
+				lostPlayer: msg["lostPlayer"]
+			});
+			
+			myGame["player_1"].disconnect();
+			myGame["player_0"].disconnect();
+
+		}
+
+
 	});
 
 
